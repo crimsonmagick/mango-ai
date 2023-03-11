@@ -4,6 +4,6 @@ import reactor.core.publisher.Mono;
 
 public interface ConversationService {
 
-  Mono<ConversationEntity> startConversation(String message);
+  Mono<ConversationEntity> startConversation();
 
 }

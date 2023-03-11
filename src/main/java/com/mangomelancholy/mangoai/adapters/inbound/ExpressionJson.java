@@ -1,3 +1,3 @@
 package com.mangomelancholy.mangoai.adapters.inbound;
 
-public record ExpressionJson(String content) {}
+public record ExpressionJson(String conversationId, String content) {}

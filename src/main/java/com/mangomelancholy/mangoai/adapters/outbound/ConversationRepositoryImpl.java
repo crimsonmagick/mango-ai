@@ -5,8 +5,10 @@ import com.mangomelancholy.mangoai.application.conversation.repository.Conversat
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Mono;
 
+@Repository
 public class ConversationRepositoryImpl implements ConversationRepository {
 
   public ConversationRepositoryImpl() {
@@ -18,9 +20,9 @@ public class ConversationRepositoryImpl implements ConversationRepository {
   @Override
   public Mono<ConversationRecord> create(final ConversationRecord newConversation) {
     final String conversationId = UUID.randomUUID().toString();
-    final ConversationRecord toWrite = new ConversationRecord(conversationId, newConversation.expressions());
-    conversations.put(conversationId, toWrite);
-    return Mono.just(newConversation);
+    final ConversationRecord  newRecord = new ConversationRecord(conversationId, newConversation.expressions());
+    conversations.put(conversationId,  newRecord);
+    return Mono.just( newRecord);
   }
 
   @Override
