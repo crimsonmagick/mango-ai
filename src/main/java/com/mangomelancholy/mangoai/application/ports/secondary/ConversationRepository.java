@@ -1,4 +1,4 @@
-package com.mangomelancholy.mangoai.application.conversation.repository;
+package com.mangomelancholy.mangoai.application.ports.secondary;
 
 import reactor.core.publisher.Mono;
 
@@ -8,3 +8,4 @@ public interface ConversationRepository {
   Mono<Void> update(ConversationRecord conversation);
 
 }
+

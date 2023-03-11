@@ -1,7 +1,8 @@
 package com.mangomelancholy.mangoai.application.conversation;
 
 import com.mangomelancholy.mangoai.application.conversation.ExpressionValue.ActorType;
-import com.mangomelancholy.mangoai.application.conversation.repository.ConversationRepository;
+import com.mangomelancholy.mangoai.application.ports.secondary.ConversationRepository;
+import com.mangomelancholy.mangoai.application.ports.primary.ConversationService;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 

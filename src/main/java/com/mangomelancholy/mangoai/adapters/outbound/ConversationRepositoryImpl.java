@@ -1,7 +1,7 @@
 package com.mangomelancholy.mangoai.adapters.outbound;
 
-import com.mangomelancholy.mangoai.application.conversation.repository.ConversationRecord;
-import com.mangomelancholy.mangoai.application.conversation.repository.ConversationRepository;
+import com.mangomelancholy.mangoai.application.ports.secondary.ConversationRecord;
+import com.mangomelancholy.mangoai.application.ports.secondary.ConversationRepository;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;

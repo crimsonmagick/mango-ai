@@ -1,6 +1,6 @@
 package com.mangomelancholy.mangoai.application.conversation;
 
-import com.mangomelancholy.mangoai.application.conversation.repository.ExpressionRecord;
+import com.mangomelancholy.mangoai.application.ports.secondary.ExpressionRecord;
 
 public record ExpressionValue(String content, ActorType actor) {
 

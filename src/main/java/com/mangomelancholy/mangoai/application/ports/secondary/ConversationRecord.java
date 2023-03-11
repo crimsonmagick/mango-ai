@@ -1,4 +1,4 @@
-package com.mangomelancholy.mangoai.application.conversation.repository;
+package com.mangomelancholy.mangoai.application.ports.secondary;
 
 import java.util.List;
 

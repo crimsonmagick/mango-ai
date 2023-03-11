@@ -2,7 +2,7 @@ package com.mangomelancholy.mangoai.adapters.inbound;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 
-import com.mangomelancholy.mangoai.application.conversation.ConversationService;
+import com.mangomelancholy.mangoai.application.ports.primary.ConversationService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.context.annotation.Bean;

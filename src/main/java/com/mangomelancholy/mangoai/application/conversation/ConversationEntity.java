@@ -1,7 +1,7 @@
 package com.mangomelancholy.mangoai.application.conversation;
 
-import com.mangomelancholy.mangoai.application.conversation.repository.ConversationRecord;
-import com.mangomelancholy.mangoai.application.conversation.repository.ExpressionRecord;
+import com.mangomelancholy.mangoai.application.ports.secondary.ConversationRecord;
+import com.mangomelancholy.mangoai.application.ports.secondary.ExpressionRecord;
 import java.util.List;
 
 public class ConversationEntity {
