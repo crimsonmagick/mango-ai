@@ -1,3 +1,4 @@
 spring:
   webflux:
     base-path: /mango/melancholy/pal
+spring.config.import: secrets.yaml
