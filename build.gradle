@@ -12,12 +12,22 @@ repositories {
     mavenCentral()
 }
 
+ext {
+    log4j2Version= '2.19.0'
+}
+
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
+    implementation "org.apache.logging.log4j:log4j-core:${log4j2Version}"
+    implementation "org.apache.logging.log4j:log4j-slf4j-impl:${log4j2Version}"
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'io.projectreactor:reactor-test'
 }
 
 tasks.named('test') {
     useJUnitPlatform()
+}
+
+bootRun {
+    jvmArgs = ['-Xdebug', '-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=*:5005']
 }
