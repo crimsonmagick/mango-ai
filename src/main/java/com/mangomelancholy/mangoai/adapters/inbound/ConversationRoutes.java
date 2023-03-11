@@ -1,4 +1,4 @@
-package com.mangomelancholy.mangoai.rest;
+package com.mangomelancholy.mangoai.adapters.inbound;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 
@@ -13,9 +13,9 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 
 @Configuration
-public class WebFluxConfig {
+public class ConversationRoutes {
 
-  private static final Logger log = LogManager.getLogger(WebFluxConfig.class);
+  private static final Logger log = LogManager.getLogger(ConversationRoutes.class);
 
   @Bean
   public RouterFunction<ServerResponse> getConversations() {

@@ -33,7 +33,7 @@ public class ConversationEntity {
     return expressionValues.get(0);
   }
 
-  public ConversationRecord toRecord(final ConversationEntity conversation) {
+  public ConversationRecord toRecord() {
     final List<ExpressionRecord> expressionRecords = expressionValues.stream().map(ExpressionValue::toRecord).toList();
     return new ConversationRecord(conversationId, expressionRecords);
   }

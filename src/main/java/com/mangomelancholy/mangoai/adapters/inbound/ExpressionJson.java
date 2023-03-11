@@ -1,0 +1,3 @@
+package com.mangomelancholy.mangoai.adapters.inbound;
+
+public record ExpressionJson(String content) {}

@@ -2,56 +2,22 @@ package com.mangomelancholy.mangoai.application.conversation;
 
 import com.mangomelancholy.mangoai.application.conversation.repository.ExpressionRecord;
 
-public class ExpressionValue {
+public record ExpressionValue(String content, ActorType actor) {
 
-  final String actor;
-  final String content;
-  final String conversationId;
-  final Integer sequenceNumber;
-
-  ExpressionValue(final String content, final String actor) {
-    assert content != null;
-    assert actor != null;
-
-    this.sequenceNumber = null;
-    this.conversationId = null;
-    this.content = content;
-    this.actor = actor;
+  public enum ActorType {
+    USER, SYSTEM, PAL
   }
 
-  private ExpressionValue(final Integer sequenceNumber, final String conversationId, final String content, final String actor) {
-    assert sequenceNumber != null;
-    assert conversationId!= null;
-    assert content!= null;
-    assert actor!= null;
-
-    this.sequenceNumber = sequenceNumber;
-    this.conversationId = conversationId;
-    this.content = content;
-    this.actor = actor;
+  public ExpressionValue {
+    assert content != null;
+    assert actor != null;
   }
 
   public static ExpressionValue fromRecord(final ExpressionRecord expressionRecord) {
-    return new ExpressionValue(expressionRecord.sequenceNumber(), expressionRecord.conversationId(), expressionRecord.content(), expressionRecord.actor());
+    return new ExpressionValue(expressionRecord.content(), ActorType.valueOf(expressionRecord.actor()));
   }
 
   public ExpressionRecord toRecord() {
-    return new ExpressionRecord(sequenceNumber, content, actor, conversationId);
-  }
-
-  public String getActor() {
-    return actor;
-  }
-
-  public String getContent() {
-    return content;
-  }
-
-  public String getConversationId() {
-    return conversationId;
-  }
-
-  public Integer getSequenceNumber() {
-    return sequenceNumber;
+    return new ExpressionRecord(content, actor.toString());
   }
 }
