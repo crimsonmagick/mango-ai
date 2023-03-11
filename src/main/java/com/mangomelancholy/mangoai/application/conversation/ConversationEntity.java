@@ -7,40 +7,40 @@ import java.util.List;
 
 public class ConversationEntity {
 
-  public ConversationEntity(final Expression userExpression) {
-    assert userExpression != null;
+  public ConversationEntity(final ExpressionValue userExpressionValue) {
+    assert userExpressionValue != null;
 
-    expressions = Collections.singletonList(userExpression);
+    expressionValues = Collections.singletonList(userExpressionValue);
     conversationId = null;
   }
 
-  private ConversationEntity(final String conversationId, final List<Expression> expressions) {
+  private ConversationEntity(final String conversationId, final List<ExpressionValue> expressionValues) {
     assert conversationId != null;
-    assert expressions != null;
+    assert expressionValues != null;
 
     this.conversationId = conversationId;
-    this.expressions = expressions;
+    this.expressionValues = expressionValues;
   }
 
-  private final List<Expression> expressions;
+  private final List<ExpressionValue> expressionValues;
   private final String conversationId;
 
 
   String getConversationId() {
     return conversationId;
   }
-  Expression getLastExpression() {
-    return expressions.get(0);
+  ExpressionValue getLastExpression() {
+    return expressionValues.get(0);
   }
 
   public ConversationRecord toRecord(final ConversationEntity conversation) {
-    final List<ExpressionRecord> expressionRecords = expressions.stream().map(Expression::toRecord).toList();
+    final List<ExpressionRecord> expressionRecords = expressionValues.stream().map(ExpressionValue::toRecord).toList();
     return new ConversationRecord(conversationId, expressionRecords);
   }
 
   public static ConversationEntity fromRecord(final ConversationRecord conversationRecord) {
-    final List<Expression> expressions = conversationRecord.expressions().stream().map(Expression::fromRecord).toList();
-    return new ConversationEntity(conversationRecord.conversationId(), expressions);
+    final List<ExpressionValue> expressionValues = conversationRecord.expressions().stream().map(ExpressionValue::fromRecord).toList();
+    return new ConversationEntity(conversationRecord.conversationId(), expressionValues);
   }
 
 }

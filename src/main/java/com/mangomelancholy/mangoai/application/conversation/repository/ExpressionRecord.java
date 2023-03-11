@@ -1,5 +1,5 @@
 package com.mangomelancholy.mangoai.application.conversation.repository;
 
-public record ExpressionRecord(String expressionId, String content, String actor, String conversationId) {
+public record ExpressionRecord(Integer sequenceNumber, String content, String actor, String conversationId) {
 
 }
