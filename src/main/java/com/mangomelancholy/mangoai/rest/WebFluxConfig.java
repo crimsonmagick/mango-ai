@@ -21,20 +21,20 @@ public class WebFluxConfig {
   public RouterFunction<ServerResponse> getConversations() {
     return RouterFunctions.route(RequestPredicates.GET("/conversations"),
         request -> ServerResponse.ok().contentType(APPLICATION_JSON)
-          .bodyValue(new Expression("Hello there, I'm PAL! Please start a new conversation.")))
+          .bodyValue(new ExpressionJson("Hello there, I'm PAL! Please start a new conversation.")))
       .andRoute(RequestPredicates.POST("/conversations"), request -> {
-        final Mono<Expression> response = request.bodyToMono(Expression.class)
-          .map(expression -> {
+        final Mono<ExpressionJson> response = request.bodyToMono(ExpressionJson.class)
+          .map(expressionJson -> {
             final String message = String.format(
               "Thanks! I've created a new conversation. Here's the expression I received from you: %s",
-              expression.content());
-            return new Expression(message);
+              expressionJson.content());
+            return new ExpressionJson(message);
           })
           .doOnError(throwable -> {
             log.error("Error processing request.", throwable);
           });
         return ServerResponse.ok().contentType(APPLICATION_JSON)
-          .body(response, Expression.class);
+          .body(response, ExpressionJson.class);
       });
   }
 }
