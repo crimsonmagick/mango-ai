@@ -25,7 +25,7 @@ class ExpressionSerializerTest extends Specification {
         where:
         content                                   | actor  | expected
         "Hey there, how can I help you?"          | PAL    | "PAL: Hey there, how can I help you?"
-        "You are a chatbot"                       | SYSTEM | "You are a chatbot"
+        "You are a chatbot"                       | SYSTEM | "System: You are a chatbot"
         "Hello, could you teach me the alphabet?" | USER   | "You: Hello, could you teach me the alphabet?"
 
     }
