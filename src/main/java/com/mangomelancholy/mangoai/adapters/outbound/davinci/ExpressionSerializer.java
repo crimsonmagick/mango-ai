@@ -13,7 +13,7 @@ public class ExpressionSerializer {
    * @param expression to parse
    * @return a parsed String
    */
-  String parseExpression(final ExpressionValue expression) {
+  String serializeExpression(final ExpressionValue expression) {
     return getPrefix(expression.actor()) + expression.content();
   }
 

@@ -15,12 +15,12 @@ class ExpressionSerializerTest extends Specification {
         underTest = new ExpressionSerializer()
     }
 
-    def "ParseExpression - parsed expressions should be properly prefixed"() {
+    def "serializeExpression - serialized expressions should be properly prefixed"() {
         when:
-        def parsedText = underTest.parseExpression(new ExpressionValue(content, actor))
+        def serializedText = underTest.serializeExpression(new ExpressionValue(content, actor))
 
         then:
-        parsedText == expected
+        serializedText == expected
 
         where:
         content                                   | actor  | expected

@@ -17,7 +17,7 @@ public class OpenAICompletionsClient {
     private final String apiKey;
 
 
-    public Mono<String> complete(final String prompt) {
+    public Mono<OpenAIResponse> complete(final String prompt) {
         final OpenAIRequest request = new OpenAIRequest.Builder()
             .model("text-davinci-003")
             .prompt(prompt)
@@ -35,7 +35,7 @@ public class OpenAICompletionsClient {
             .header("Authorization", "Bearer " + apiKey)
             .body(BodyInserters.fromValue(request))
             .retrieve()
-            .bodyToMono(String.class);
+            .bodyToMono(OpenAIResponse.class);
     }
 
 }

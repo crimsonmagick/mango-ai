@@ -2,6 +2,7 @@ package com.mangomelancholy.mangoai.application.conversation;
 
 import com.mangomelancholy.mangoai.application.ports.secondary.ConversationRecord;
 import com.mangomelancholy.mangoai.application.ports.secondary.ExpressionRecord;
+import java.util.ArrayList;
 import java.util.List;
 
 public class ConversationEntity {
@@ -14,7 +15,7 @@ public class ConversationEntity {
     conversationId = null;
   }
 
-  private ConversationEntity(final String conversationId, final List<ExpressionValue> expressionValues) {
+  public ConversationEntity(final String conversationId, final List<ExpressionValue> expressionValues) {
     assert conversationId != null;
     assert expressionValues != null;
 
@@ -38,8 +39,18 @@ public class ConversationEntity {
   public String getConversationId() {
     return conversationId;
   }
+
+  public ConversationEntity addExpression(final ExpressionValue newExpression) {
+    final List<ExpressionValue> updatedExpressions = new ArrayList<>(expressionValues);
+    updatedExpressions.add(newExpression);
+    return new ConversationEntity(conversationId, updatedExpressions);
+  }
   public ExpressionValue getLastExpression() {
     return expressionValues.get(expressionValues.size() - 1);
+  }
+
+  public List<ExpressionValue> getExpressions() {
+    return expressionValues;
   }
 
 }

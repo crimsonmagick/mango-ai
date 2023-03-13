@@ -31,8 +31,8 @@ public class ConversationRepositoryImpl implements ConversationRepository {
   }
 
   @Override
-  public Mono<Void> update(final ConversationRecord conversation) {
+  public Mono<ConversationRecord> update(final ConversationRecord conversation) {
     conversations.put(conversation.conversationId(), conversation);
-    return Mono.empty();
+    return Mono.just(conversation);
   }
 }

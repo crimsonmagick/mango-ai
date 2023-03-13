@@ -37,20 +37,17 @@ public class ConversationRoutes {
               });
           return ServerResponse.ok().contentType(APPLICATION_JSON)
               .body(jsonMono, ExpressionJson.class);
+        })
+        .andRoute(RequestPredicates.POST("/conversations/{id}/expressions"), request -> {
+          final String id = request.pathVariable("id");
+          final Mono<ExpressionJson> response = request.bodyToMono(ExpressionJson.class)
+              .flatMap(expressionJson -> conversationService.sendExpression(id, expressionJson.content())
+                  .map(expressionValue -> new ExpressionJson(id, expressionValue.content())))
+              .doOnError(throwable -> {
+                log.error("Error processing request.", throwable);
+              });
+          return ServerResponse.ok().contentType(APPLICATION_JSON)
+              .body(response, ExpressionJson.class);
         });
-//      .andRoute(RequestPredicates.POST("/conversations/{id}/expressions"), request -> {
-//        final Mono<ExpressionJson> response = request.bodyToMono(ExpressionJson.class)
-//          .map(expressionJson -> {
-//            final String message = String.format(
-//              "Thanks! I've created a new conversation. Here's the expression I received from you: %s",
-//              expressionJson.content());
-//            return new ExpressionJson(message);
-//          })
-//          .doOnError(throwable -> {
-//            log.error("Error processing request.", throwable);
-//          });
-//        return ServerResponse.ok().contentType(APPLICATION_JSON)
-//          .body(response, ExpressionJson.class);
-//      });
   }
 }
