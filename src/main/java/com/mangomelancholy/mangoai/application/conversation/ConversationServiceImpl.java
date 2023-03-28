@@ -22,7 +22,7 @@ public class ConversationServiceImpl implements ConversationService {
 
   @Override
   public Mono<ConversationEntity> startConversation() {
-    final ExpressionValue conversationSeed = new ExpressionValue("PAL is a chatbot assistant.", ActorType.SYSTEM);
+    final ExpressionValue conversationSeed = new ExpressionValue("PAL is a chatbot assistant that strives to be as helpful as possible.", ActorType.SYSTEM);
     final ExpressionValue palGreeting = new ExpressionValue("Hi there, I'm PAL! How may I assist you?", ActorType.PAL);
     final ConversationEntity startOfConversation = new ConversationEntity(conversationSeed, palGreeting);
     return conversationRepository.create(startOfConversation.toRecord())

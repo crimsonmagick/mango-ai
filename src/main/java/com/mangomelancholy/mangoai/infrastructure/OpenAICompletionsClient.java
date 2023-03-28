@@ -22,7 +22,7 @@ public class OpenAICompletionsClient {
             .model("text-davinci-003")
             .prompt(prompt)
             .temperature(0.5)
-            .maxTokens(4000)
+            .maxTokens(300)
             .topP(0.3)
             .frequencyPenalty(0.5)
             .presencePenalty(0)

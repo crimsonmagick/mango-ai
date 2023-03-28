@@ -1,7 +1,8 @@
 package com.mangomelancholy.mangoai.infrastructure;
 
-public record OpenAIRequest(String model, String prompt, double temperature, int max_tokens, double top_p, double frequency_penalty,
-                            double presence_penalty, boolean stream) {
+import java.util.List;
+
+public record OpenAIRequest(String model, String prompt, double temperature, int max_tokens, double top_p, double frequency_penalty, double presence_penalty, boolean stream, List<String> stop) {
 
   public static Builder builder() {
     return new Builder();
@@ -16,6 +17,7 @@ public record OpenAIRequest(String model, String prompt, double temperature, int
     private double frequencyPenalty;
     private double presencePenalty;
     private boolean stream;
+    private List<String> stop;
 
     public Builder() {}
 
@@ -59,8 +61,13 @@ public record OpenAIRequest(String model, String prompt, double temperature, int
       return this;
     }
 
+    public Builder stop(final List<String> stop) {
+      this.stop = stop;
+      return this;
+    }
+
     public OpenAIRequest build() {
-      return new OpenAIRequest(model, prompt, temperature, maxTokens, topP, frequencyPenalty, presencePenalty, stream);
+      return new OpenAIRequest(model, prompt, temperature, maxTokens, topP, frequencyPenalty, presencePenalty, stream, stop);
     }
   }
 
