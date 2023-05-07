@@ -3,8 +3,8 @@ package com.mangomelancholy.mangoai.adapters.inbound;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 
 import com.mangomelancholy.mangoai.application.ports.primary.ConversationService;
-import com.mangomelancholy.mangoai.application.ports.secondary.TextCompletion;
-import com.mangomelancholy.mangoai.infrastructure.OpenAICompletionsStreamingClient;
+import com.mangomelancholy.mangoai.infrastructure.OpenAICompletionsClient;
+import com.mangomelancholy.mangoai.infrastructure.TextCompletion;
 import java.util.Objects;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -26,9 +26,9 @@ public class ConversationRouteConfiguration {
 
   private static final Logger log = LogManager.getLogger(ConversationRouteConfiguration.class);
   private final ConversationService conversationService;
-  private final OpenAICompletionsStreamingClient streamingClient;
+  private final OpenAICompletionsClient streamingClient;
 
-  public ConversationRouteConfiguration(final ConversationService conversationService, final OpenAICompletionsStreamingClient streamingClient) {
+  public ConversationRouteConfiguration(final ConversationService conversationService, final OpenAICompletionsClient streamingClient) {
     this.conversationService = conversationService;
     this.streamingClient = streamingClient;
   }
@@ -61,7 +61,7 @@ public class ConversationRouteConfiguration {
         })
         .andRoute(RequestPredicates.POST("/streaming/conversations/expressions"), request -> {
           final Flux<TextCompletion> responseStream = request.bodyToMono(String.class)
-              .flatMapMany(streamingClient::complete)
+              .flatMapMany(prompt -> streamingClient.streamed().complete(prompt))
               .doOnNext(event -> {
                 if (event == null) {
                   log.warn("Received null response from server.");

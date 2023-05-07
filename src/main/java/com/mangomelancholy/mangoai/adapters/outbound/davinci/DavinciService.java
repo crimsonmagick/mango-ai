@@ -26,7 +26,7 @@ public class DavinciService implements AIService {
   @Override
   public Mono<ExpressionValue> exchange(final ConversationEntity conversationEntity) {
     final String content = conversationSerializer.serializeConversation(conversationEntity);
-    return completionsClient.complete(content)
+    return completionsClient.nonStreamed().complete(content )
         .doOnError(throwable -> {
           final String responseBody;
           if (throwable instanceof WebClientResponseException) {
