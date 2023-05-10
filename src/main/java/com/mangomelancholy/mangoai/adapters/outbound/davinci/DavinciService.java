@@ -14,6 +14,7 @@ import reactor.core.publisher.Mono;
 @Service
 public class DavinciService implements AIService {
 
+  private static final String ATTRIBUTION = ActorType.PAL + ": ";
   private static final Logger log = LogManager.getLogger(DavinciService.class);
   private final OpenAICompletionsClient completionsClient;
   private final ConversationSerializer conversationSerializer;
@@ -26,7 +27,7 @@ public class DavinciService implements AIService {
   @Override
   public Mono<ExpressionValue> exchange(final ConversationEntity conversationEntity) {
     final String content = conversationSerializer.serializeConversation(conversationEntity);
-    return completionsClient.nonStreamed().complete(content )
+    return completionsClient.nonStreamed().complete(content)
         .doOnError(throwable -> {
           final String responseBody;
           if (throwable instanceof WebClientResponseException) {
@@ -37,9 +38,19 @@ public class DavinciService implements AIService {
           log.error("Error while sending expression content. content={}, responseBody={}", content, responseBody, throwable);
         })
         .map(response -> {
-          // FIXME NPE extravaganza
+          if (response == null || response.choices() == null || response.choices().size() < 1
+              || response.choices().get(0) == null || response.choices().get(0).text() == null) {
+            log.error("Invalid response, response={}", response);
+            throw new RuntimeException(String.format("Invalid response, response=%s", response));
+          }
           final String choiceText = response.choices().get(0).text();
-          final String palResponse = choiceText.substring(choiceText.lastIndexOf("PAL: "));
+          final int attributionIndex = choiceText.lastIndexOf(ATTRIBUTION);
+          final String palResponse;
+          if (attributionIndex > -1) {
+            palResponse = choiceText.substring(attributionIndex + ATTRIBUTION.length());
+          } else {
+            palResponse = choiceText;
+          }
           return new ExpressionValue(palResponse, ActorType.PAL);
         });
   }

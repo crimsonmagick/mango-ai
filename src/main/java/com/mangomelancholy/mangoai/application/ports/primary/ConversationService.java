@@ -6,7 +6,7 @@ import reactor.core.publisher.Mono;
 
 public interface ConversationService {
 
-  Mono<ConversationEntity> startConversation();
+  Mono<ConversationEntity> startConversation(String messageContent);
 
   Mono<ExpressionValue> sendExpression(String conversationId, String messageContent);
 

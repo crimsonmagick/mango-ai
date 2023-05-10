@@ -39,7 +39,8 @@ public class ConversationRouteConfiguration {
             request -> ServerResponse.ok().contentType(APPLICATION_JSON)
                 .bodyValue(new ExpressionJson(null, "Hello there, I'm PAL! Please start a new conversation.")))
         .andRoute(RequestPredicates.POST("/conversations"), request -> {
-          final Mono<ExpressionJson> jsonMono = conversationService.startConversation()
+          final Mono<ExpressionJson> jsonMono = request.bodyToMono(ExpressionJson.class)
+              .flatMap(message -> conversationService.startConversation(message.content()))
               .map(conversation ->
                   new ExpressionJson(conversation.getConversationId(), conversation.getLastExpression().content()))
               .doOnError(throwable -> {

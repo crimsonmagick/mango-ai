@@ -18,12 +18,15 @@ public class ExpressionSerializer {
   }
 
   private String getPrefix(final ActorType actorType) {
-    if (actorType == ActorType.USER) {
+    if (actorType == ActorType.INITIAL_PROMPT) {
+      return "";
+    } else if (actorType == ActorType.USER) {
       return "You: ";
     } else if (actorType == ActorType.SYSTEM) {
       return "System: ";
+    } else {
+      return "PAL: ";
     }
-    return "PAL: ";
   }
 
 }

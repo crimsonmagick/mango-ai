@@ -5,7 +5,7 @@ import com.mangomelancholy.mangoai.application.ports.secondary.ExpressionRecord;
 public record ExpressionValue(String content, ActorType actor) {
 
   public enum ActorType {
-    USER, SYSTEM, PAL
+    INITIAL_PROMPT, USER, SYSTEM, PAL
   }
 
   public ExpressionValue {
