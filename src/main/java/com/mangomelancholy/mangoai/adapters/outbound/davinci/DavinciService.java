@@ -4,6 +4,7 @@ import com.mangomelancholy.mangoai.application.conversation.ConversationEntity;
 import com.mangomelancholy.mangoai.application.conversation.ExpressionValue;
 import com.mangomelancholy.mangoai.application.conversation.ExpressionValue.ActorType;
 import com.mangomelancholy.mangoai.application.ports.secondary.AIService;
+import com.mangomelancholy.mangoai.application.ports.secondary.AISingletonService;
 import com.mangomelancholy.mangoai.infrastructure.OpenAICompletionsClient;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -12,7 +13,7 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 import reactor.core.publisher.Mono;
 
 @Service
-public class DavinciService implements AIService {
+public class DavinciService implements AISingletonService {
 
   private static final String ATTRIBUTION = ActorType.PAL + ": ";
   private static final Logger log = LogManager.getLogger(DavinciService.class);
