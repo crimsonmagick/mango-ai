@@ -2,7 +2,6 @@ package com.mangomelancholy.mangoai.adapters.outbound.davinci;
 
 import com.mangomelancholy.mangoai.application.conversation.ConversationEntity;
 import com.mangomelancholy.mangoai.application.conversation.ExpressionValue;
-import com.mangomelancholy.mangoai.application.conversation.ExpressionValue.ActorType;
 import com.mangomelancholy.mangoai.application.ports.secondary.AIService;
 import com.mangomelancholy.mangoai.infrastructure.OpenAICompletionsClient;
 import org.apache.logging.log4j.LogManager;
@@ -12,46 +11,46 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 import reactor.core.publisher.Mono;
 
 @Service
-public class DavinciService implements AIService {
+public class DavinciSingletonService implements AIService<Mono<ExpressionValue>> {
 
-  private static final String ATTRIBUTION = ActorType.PAL + ": ";
-  private static final Logger log = LogManager.getLogger(DavinciService.class);
+  private static final Logger log = LogManager.getLogger(DavinciSingletonService.class);
   private final OpenAICompletionsClient completionsClient;
   private final ConversationSerializer conversationSerializer;
+  private final CompletionMapper completionMapper;
 
-  public DavinciService(final OpenAICompletionsClient completionsClient, final ConversationSerializer expressionSerializer) {
+
+  public DavinciSingletonService(final OpenAICompletionsClient completionsClient,
+      final ConversationSerializer conversationSerializer,
+      final CompletionMapper completionMapper) {
     this.completionsClient = completionsClient;
-    this.conversationSerializer = expressionSerializer;
+    this.conversationSerializer = conversationSerializer;
+    this.completionMapper = completionMapper;
   }
 
   @Override
   public Mono<ExpressionValue> exchange(final ConversationEntity conversationEntity) {
     final String content = conversationSerializer.serializeConversation(conversationEntity);
-    return completionsClient.nonStreamed().complete(content)
-        .doOnError(throwable -> {
-          final String responseBody;
-          if (throwable instanceof WebClientResponseException) {
-            responseBody = ((WebClientResponseException) throwable).getResponseBodyAsString();
-          } else {
-            responseBody = "NONE";
-          }
-          log.error("Error while sending expression content. content={}, responseBody={}", content, responseBody, throwable);
-        })
+    return completionsClient.singleton().complete(content)
+        .doOnError(throwable -> onError(throwable, content))
         .map(response -> {
           if (response == null || response.choices() == null || response.choices().size() < 1
               || response.choices().get(0) == null || response.choices().get(0).text() == null) {
             log.error("Invalid response, response={}", response);
             throw new RuntimeException(String.format("Invalid response, response=%s", response));
           }
-          final String choiceText = response.choices().get(0).text();
-          final int attributionIndex = choiceText.lastIndexOf(ATTRIBUTION);
-          final String palResponse;
-          if (attributionIndex > -1) {
-            palResponse = choiceText.substring(attributionIndex + ATTRIBUTION.length());
-          } else {
-            palResponse = choiceText;
-          }
-          return new ExpressionValue(palResponse, ActorType.PAL);
+          return completionMapper.mapResponse(response);
         });
+  }
+
+  protected void onError(final Throwable throwable, final String content) {
+    final String responseBody;
+    if (throwable instanceof WebClientResponseException) {
+      responseBody = ((WebClientResponseException) throwable).getResponseBodyAsString();
+    } else {
+      responseBody = "NONE";
+    }
+    log.error("Error while sending expression content. content={}, responseBody={}", content,
+        responseBody, throwable);
+
   }
 }

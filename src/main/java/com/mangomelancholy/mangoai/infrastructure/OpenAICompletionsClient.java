@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.reactivestreams.Publisher;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.codec.ServerSentEvent;
@@ -24,13 +25,19 @@ public class OpenAICompletionsClient {
   private final ObjectMapper objectMapper;
   private final WebClient webClient;
 
-  public OpenAICompletionsClient(@Value("${pal.secrets.authkey}") final String apiKey, final ObjectMapper objectMapper) {
+  public OpenAICompletionsClient(@Value("${pal.secrets.authkey}") final String apiKey,
+      final ObjectMapper objectMapper) {
     this.apiKey = apiKey;
     this.objectMapper = objectMapper;
     this.webClient = WebClient.create("https://api.openai.com/v1/");
   }
 
-  public class NonStreamedDelegation {
+  public interface Delegation<T extends Publisher<TextCompletion>> {
+
+    T complete(String prompt);
+  }
+
+  public class SingletonDelegation implements Delegation<Mono<TextCompletion>> {
 
     public Mono<TextCompletion> complete(final String prompt) {
       return OpenAICompletionsClient.this.complete(prompt, false)
@@ -38,7 +45,7 @@ public class OpenAICompletionsClient {
     }
   }
 
-  public class StreamedDelegation {
+  public class StreamedDelegation implements Delegation<Flux<TextCompletion>> {
 
     public Flux<TextCompletion> complete(final String prompt) {
       return OpenAICompletionsClient.this.complete(prompt, true)
@@ -49,15 +56,17 @@ public class OpenAICompletionsClient {
             try {
               return objectMapper.readValue(event.data(), TextCompletion.class);
             } catch (final JsonProcessingException e) {
-              throw new RuntimeException(String.format("Unable to parse data value. data=%s", event.data()), e);
+              throw new RuntimeException(
+                  String.format("Unable to parse data value. data=%s", event.data()), e);
             }
           })
-          .onErrorContinue((throwable, event) -> log.warn("Error processing event. event={}", event, throwable));
+          .onErrorContinue(
+              (throwable, event) -> log.warn("Error processing event. event={}", event, throwable));
     }
   }
 
-  public NonStreamedDelegation nonStreamed() {
-    return new NonStreamedDelegation();
+  public SingletonDelegation singleton() {
+    return new SingletonDelegation();
   }
 
   public StreamedDelegation streamed() {
