@@ -2,6 +2,7 @@ package com.mangomelancholy.mangoai.adapters.inbound;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 
+import com.mangomelancholy.mangoai.application.conversation.ConversationServiceImpl;
 import com.mangomelancholy.mangoai.application.ports.primary.ConversationService;
 import com.mangomelancholy.mangoai.infrastructure.OpenAICompletionsClient;
 import com.mangomelancholy.mangoai.infrastructure.TextCompletion;
@@ -25,10 +26,10 @@ import reactor.core.publisher.Mono;
 public class ConversationRouteConfiguration {
 
   private static final Logger log = LogManager.getLogger(ConversationRouteConfiguration.class);
-  private final ConversationService conversationService;
+  private final ConversationServiceImpl conversationService;
   private final OpenAICompletionsClient streamingClient;
 
-  public ConversationRouteConfiguration(final ConversationService conversationService, final OpenAICompletionsClient streamingClient) {
+  public ConversationRouteConfiguration(final ConversationServiceImpl conversationService, final OpenAICompletionsClient streamingClient) {
     this.conversationService = conversationService;
     this.streamingClient = streamingClient;
   }
