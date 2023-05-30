@@ -22,8 +22,12 @@ public class CompletionMapper {
     return new ExpressionValue(palResponse, ActorType.PAL);
   }
 
-  public ExpressionFragment mapFragment(final TextCompletion textCompletion) {
-    new ExpressionFragment(textCompletion.id())
+  public ExpressionFragment mapFragment(final TextCompletion textCompletion, final long sequenceNumber) {
+    final String contentFragment = textCompletion.choices().stream()
+        .findFirst()
+        .orElseThrow(() -> new RuntimeException("No choice provided by completion."))
+        .text();
+    return new ExpressionFragment(contentFragment, sequenceNumber);
   }
 }
 

@@ -26,9 +26,10 @@ public class DavinciStreamService {
 
 
   public Flux<ExpressionFragment> exchange(final ConversationEntity conversationEntity) {
-    completionsClient.streamed()
+    return completionsClient.streamed()
         .complete(conversationSerializer.serializeConversation(conversationEntity))
-        .map(completionMapper::mapFragoment)
+        .index()
+        .map(tuple -> completionMapper.mapFragment(tuple.getT2(), tuple.getT1()));
   }
 
 }

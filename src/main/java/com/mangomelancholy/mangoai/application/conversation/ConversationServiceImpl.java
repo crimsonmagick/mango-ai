@@ -2,6 +2,7 @@ package com.mangomelancholy.mangoai.application.conversation;
 
 import static com.mangomelancholy.mangoai.application.conversation.ExpressionValue.ActorType.USER;
 
+import com.mangomelancholy.mangoai.adapters.outbound.davinci.DavinciSingletonService;
 import com.mangomelancholy.mangoai.application.conversation.ExpressionValue.ActorType;
 import com.mangomelancholy.mangoai.application.ports.primary.ConversationService;
 import com.mangomelancholy.mangoai.application.ports.secondary.AIService;
@@ -14,13 +15,13 @@ import reactor.core.publisher.Mono;
 public class ConversationServiceImpl implements ConversationService<Mono<ConversationEntity>,
     Mono<ExpressionValue>> {
 
-  private final AIService aiService;
+  private final DavinciSingletonService aiService;
   private final ConversationRepository conversationRepository;
 
   public ConversationServiceImpl(final ConversationRepository conversationRepository,
-      final AIService aiService) {
+      final DavinciSingletonService davinciSingletonService) {
     this.conversationRepository = conversationRepository;
-    this.aiService = aiService;
+    this.aiService = davinciSingletonService;
   }
 
   @Override
@@ -31,14 +32,13 @@ public class ConversationServiceImpl implements ConversationService<Mono<Convers
     final ExpressionValue palGreeting = new ExpressionValue(messageContent, USER);
     final ConversationEntity startOfConversation = new ConversationEntity(conversationSeed,
         palGreeting);
-    Mono<ConversationEntity> conversationEntityMono = conversationRepository.create(
+    return conversationRepository.create(
             startOfConversation.toRecord())
         .flatMap(conversationRecord -> {
           final ConversationEntity conversation = ConversationEntity.fromRecord(conversationRecord);
           return aiService.exchange(conversation)
               .map(conversation::addExpression);
         });
-    return conversationEntityMono;
   }
 
   @Override
