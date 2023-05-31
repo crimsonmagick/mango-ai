@@ -12,6 +12,11 @@ public class CompletionMapper {
   protected static final String ATTRIBUTION = ActorType.PAL + ": ";
   public ExpressionValue mapResponse(final TextCompletion response) {
     final String choiceText = response.choices().get(0).text();
+    final String normalizedChoiceText = normalizeChoice(choiceText);
+    return new ExpressionValue(normalizedChoiceText, ActorType.PAL);
+  }
+
+  public String normalizeChoice(final String choiceText) {
     final int attributionIndex = choiceText.lastIndexOf(ATTRIBUTION);
     final String palResponse;
     if (attributionIndex > -1) {
@@ -19,7 +24,7 @@ public class CompletionMapper {
     } else {
       palResponse = choiceText;
     }
-    return new ExpressionValue(palResponse, ActorType.PAL);
+    return palResponse;
   }
 
   public ExpressionFragment mapFragment(final TextCompletion textCompletion, final long sequenceNumber) {

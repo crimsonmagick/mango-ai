@@ -6,7 +6,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
 
 import com.mangomelancholy.mangoai.adapters.outbound.davinci.DavinciStreamService;
 import com.mangomelancholy.mangoai.application.conversation.ConversationEntity;
-import com.mangomelancholy.mangoai.application.conversation.ConversationServiceImpl;
+import com.mangomelancholy.mangoai.application.conversation.ConversationSingletonServiceImpl;
 import com.mangomelancholy.mangoai.application.conversation.ExpressionFragment;
 import com.mangomelancholy.mangoai.application.conversation.ExpressionValue;
 import com.mangomelancholy.mangoai.infrastructure.OpenAICompletionsClient;
@@ -30,10 +30,10 @@ import reactor.core.publisher.Mono;
 public class ConversationRouteConfiguration {
 
   private static final Logger log = LogManager.getLogger(ConversationRouteConfiguration.class);
-  private final ConversationServiceImpl conversationService;
+  private final ConversationSingletonServiceImpl conversationService;
   private final DavinciStreamService davinciStreamService;
 
-  public ConversationRouteConfiguration(final ConversationServiceImpl conversationService, final OpenAICompletionsClient streamingClient, final
+  public ConversationRouteConfiguration(final ConversationSingletonServiceImpl conversationService, final OpenAICompletionsClient streamingClient, final
       DavinciStreamService davinciStreamService) {
     this.conversationService = conversationService;
     this.davinciStreamService = davinciStreamService;

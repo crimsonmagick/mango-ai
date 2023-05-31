@@ -5,20 +5,18 @@ import static com.mangomelancholy.mangoai.application.conversation.ExpressionVal
 import com.mangomelancholy.mangoai.adapters.outbound.davinci.DavinciSingletonService;
 import com.mangomelancholy.mangoai.application.conversation.ExpressionValue.ActorType;
 import com.mangomelancholy.mangoai.application.ports.primary.ConversationService;
-import com.mangomelancholy.mangoai.application.ports.secondary.AIService;
 import com.mangomelancholy.mangoai.application.ports.secondary.ConversationRepository;
-import org.reactivestreams.Publisher;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
 @Service
-public class ConversationServiceImpl implements ConversationService<Mono<ConversationEntity>,
+public class ConversationSingletonServiceImpl implements ConversationService<Mono<ConversationEntity>,
     Mono<ExpressionValue>> {
 
   private final DavinciSingletonService aiService;
   private final ConversationRepository conversationRepository;
 
-  public ConversationServiceImpl(final ConversationRepository conversationRepository,
+  public ConversationSingletonServiceImpl(final ConversationRepository conversationRepository,
       final DavinciSingletonService davinciSingletonService) {
     this.conversationRepository = conversationRepository;
     this.aiService = davinciSingletonService;
@@ -27,7 +25,7 @@ public class ConversationServiceImpl implements ConversationService<Mono<Convers
   @Override
   public Mono<ConversationEntity> startConversation(final String messageContent) {
     final ExpressionValue conversationSeed = new ExpressionValue(
-        "PAL is a chatbot assistant that strives to be as helpful as possible.",
+        "You are PAL, a chatbot assistant that strives to be as helpful as possible. You prefix every response to a user with the string \"PAL: \".",
         ActorType.INITIAL_PROMPT);
     final ExpressionValue palGreeting = new ExpressionValue(messageContent, USER);
     final ConversationEntity startOfConversation = new ConversationEntity(conversationSeed,
