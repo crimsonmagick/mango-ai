@@ -9,9 +9,7 @@ import com.mangomelancholy.mangoai.application.conversation.ConversationEntity;
 import com.mangomelancholy.mangoai.application.conversation.ConversationServiceImpl;
 import com.mangomelancholy.mangoai.application.conversation.ExpressionFragment;
 import com.mangomelancholy.mangoai.application.conversation.ExpressionValue;
-import com.mangomelancholy.mangoai.application.ports.primary.ConversationService;
 import com.mangomelancholy.mangoai.infrastructure.OpenAICompletionsClient;
-import com.mangomelancholy.mangoai.infrastructure.TextCompletion;
 import java.util.Objects;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -34,12 +32,10 @@ public class ConversationRouteConfiguration {
   private static final Logger log = LogManager.getLogger(ConversationRouteConfiguration.class);
   private final ConversationServiceImpl conversationService;
   private final DavinciStreamService davinciStreamService;
-  private final OpenAICompletionsClient streamingClient;
 
   public ConversationRouteConfiguration(final ConversationServiceImpl conversationService, final OpenAICompletionsClient streamingClient, final
       DavinciStreamService davinciStreamService) {
     this.conversationService = conversationService;
-    this.streamingClient = streamingClient;
     this.davinciStreamService = davinciStreamService;
   }
 
@@ -73,11 +69,10 @@ public class ConversationRouteConfiguration {
         .andRoute(RequestPredicates.POST("/streaming/conversations/expressions"), request -> {
           final Flux<ExpressionFragment> responseStream = request.bodyToMono(String.class)
               .flatMapMany(prompt -> {
-                final ExpressionValue seedExpression = new ExpressionValue("You are a helpful AI chat assistant named \"PAL\"", INITIAL_PROMPT);
+                final ExpressionValue seedExpression = new ExpressionValue("You are PAL, a chatbot assistant that strives to be as helpful as possible. You prefix every response to a user with the string \"PAL: \".", INITIAL_PROMPT);
                 final ExpressionValue promptExpression = new ExpressionValue(prompt, USER);
                 final ConversationEntity conversation = new ConversationEntity(seedExpression, promptExpression);
                 return davinciStreamService.exchange(conversation);
-//                streamingClient.streamed().complete(prompt);
               })
               .doOnNext(event -> {
                 if (event == null) {
