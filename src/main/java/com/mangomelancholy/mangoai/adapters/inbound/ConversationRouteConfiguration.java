@@ -7,9 +7,9 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
 import com.mangomelancholy.mangoai.adapters.outbound.davinci.DavinciStreamService;
 import com.mangomelancholy.mangoai.application.conversation.ConversationEntity;
 import com.mangomelancholy.mangoai.application.conversation.ConversationSingletonServiceImpl;
+import com.mangomelancholy.mangoai.application.conversation.ConversationStreamedServiceImpl;
 import com.mangomelancholy.mangoai.application.conversation.ExpressionFragment;
 import com.mangomelancholy.mangoai.application.conversation.ExpressionValue;
-import com.mangomelancholy.mangoai.infrastructure.OpenAICompletionsClient;
 import java.util.Objects;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -30,13 +30,13 @@ import reactor.core.publisher.Mono;
 public class ConversationRouteConfiguration {
 
   private static final Logger log = LogManager.getLogger(ConversationRouteConfiguration.class);
-  private final ConversationSingletonServiceImpl conversationService;
-  private final DavinciStreamService davinciStreamService;
+  private final ConversationSingletonServiceImpl conversationSingletonService;
+  private final ConversationStreamedServiceImpl conversationStreamedService;
 
-  public ConversationRouteConfiguration(final ConversationSingletonServiceImpl conversationService, final OpenAICompletionsClient streamingClient, final
-      DavinciStreamService davinciStreamService) {
-    this.conversationService = conversationService;
-    this.davinciStreamService = davinciStreamService;
+  public ConversationRouteConfiguration(final ConversationSingletonServiceImpl conversationSingletonService,
+      final ConversationStreamedServiceImpl conversationStreamedService) {
+    this.conversationSingletonService = conversationSingletonService;
+    this.conversationStreamedService = conversationStreamedService;
   }
 
   @Bean
@@ -46,7 +46,7 @@ public class ConversationRouteConfiguration {
                 .bodyValue(new ExpressionJson(null, "Hello there, I'm PAL! Please start a new conversation.")))
         .andRoute(RequestPredicates.POST("/conversations"), request -> {
           final Mono<ExpressionJson> jsonMono = request.bodyToMono(ExpressionJson.class)
-              .flatMap(message -> conversationService.startConversation(message.content()))
+              .flatMap(message -> conversationSingletonService.startConversation(message.content()))
               .map(conversation ->
                   new ExpressionJson(conversation.getConversationId(), conversation.getLastExpression().content()))
               .doOnError(throwable -> {
@@ -58,7 +58,7 @@ public class ConversationRouteConfiguration {
         .andRoute(RequestPredicates.POST("/conversations/{id}/expressions"), request -> {
           final String id = request.pathVariable("id");
           final Mono<ExpressionJson> response = request.bodyToMono(ExpressionJson.class)
-              .flatMap(expressionJson -> conversationService.sendExpression(id, expressionJson.content())
+              .flatMap(expressionJson -> conversationSingletonService.sendExpression(id, expressionJson.content())
                   .map(expressionValue -> new ExpressionJson(id, expressionValue.content())))
               .doOnError(throwable -> {
                 log.error("Error processing request.", throwable);
@@ -66,14 +66,9 @@ public class ConversationRouteConfiguration {
           return ServerResponse.ok().contentType(APPLICATION_JSON)
               .body(response, ExpressionJson.class);
         })
-        .andRoute(RequestPredicates.POST("/streaming/conversations/expressions"), request -> {
+        .andRoute(RequestPredicates.POST("/streamed/conversations"), request -> {
           final Flux<ExpressionFragment> responseStream = request.bodyToMono(String.class)
-              .flatMapMany(prompt -> {
-                final ExpressionValue seedExpression = new ExpressionValue("You are PAL, a chatbot assistant that strives to be as helpful as possible. You prefix every response to a user with the string \"PAL: \".", INITIAL_PROMPT);
-                final ExpressionValue promptExpression = new ExpressionValue(prompt, USER);
-                final ConversationEntity conversation = new ConversationEntity(seedExpression, promptExpression);
-                return davinciStreamService.exchange(conversation);
-              })
+              .flatMapMany(conversationStreamedService::startConversation)
               .doOnNext(event -> {
                 if (event == null) {
                   log.warn("Received null response from server.");
