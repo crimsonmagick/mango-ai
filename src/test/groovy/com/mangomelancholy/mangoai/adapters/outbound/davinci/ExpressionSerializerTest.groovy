@@ -3,10 +3,7 @@ package com.mangomelancholy.mangoai.adapters.outbound.davinci
 import com.mangomelancholy.mangoai.application.conversation.ExpressionValue
 import spock.lang.Specification
 
-import static com.mangomelancholy.mangoai.application.conversation.ExpressionValue.ActorType.INITIAL_PROMPT
-import static com.mangomelancholy.mangoai.application.conversation.ExpressionValue.ActorType.PAL
-import static com.mangomelancholy.mangoai.application.conversation.ExpressionValue.ActorType.SYSTEM
-import static com.mangomelancholy.mangoai.application.conversation.ExpressionValue.ActorType.USER
+import static com.mangomelancholy.mangoai.application.conversation.ExpressionValue.ActorType.*
 
 class ExpressionSerializerTest extends Specification {
 

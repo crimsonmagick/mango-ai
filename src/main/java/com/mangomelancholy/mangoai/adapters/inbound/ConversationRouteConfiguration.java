@@ -2,7 +2,7 @@ package com.mangomelancholy.mangoai.adapters.inbound;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 
-import com.mangomelancholy.mangoai.application.conversation.ConversationSingletonServiceImpl;
+import com.mangomelancholy.mangoai.application.conversation.ConversationSingletonSingletonServiceImpl;
 import com.mangomelancholy.mangoai.application.conversation.ConversationStreamedServiceImpl;
 import com.mangomelancholy.mangoai.application.conversation.ExpressionFragment;
 import java.util.Objects;
@@ -25,10 +25,10 @@ import reactor.core.publisher.Mono;
 public class ConversationRouteConfiguration {
 
   private static final Logger log = LogManager.getLogger(ConversationRouteConfiguration.class);
-  private final ConversationSingletonServiceImpl conversationSingletonService;
+  private final ConversationSingletonSingletonServiceImpl conversationSingletonService;
   private final ConversationStreamedServiceImpl conversationStreamedService;
 
-  public ConversationRouteConfiguration(final ConversationSingletonServiceImpl conversationSingletonService,
+  public ConversationRouteConfiguration(final ConversationSingletonSingletonServiceImpl conversationSingletonService,
       final ConversationStreamedServiceImpl conversationStreamedService) {
     this.conversationSingletonService = conversationSingletonService;
     this.conversationStreamedService = conversationStreamedService;

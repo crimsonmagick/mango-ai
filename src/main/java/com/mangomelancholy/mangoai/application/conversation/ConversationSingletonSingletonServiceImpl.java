@@ -4,22 +4,22 @@ import static com.mangomelancholy.mangoai.application.conversation.ExpressionVal
 
 import com.mangomelancholy.mangoai.adapters.outbound.davinci.DavinciSingletonService;
 import com.mangomelancholy.mangoai.application.conversation.ExpressionValue.ActorType;
-import com.mangomelancholy.mangoai.application.ports.primary.ConversationService;
+import com.mangomelancholy.mangoai.application.ports.primary.ConversationSingletonService;
 import com.mangomelancholy.mangoai.application.ports.secondary.ConversationRepository;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
 @Service
-public class ConversationSingletonServiceImpl implements ConversationService<Mono<ConversationEntity>,
+public class ConversationSingletonSingletonServiceImpl implements ConversationSingletonService<Mono<ConversationEntity>,
     Mono<ExpressionValue>> {
 
-  private final DavinciSingletonService aiService;
+  private final DavinciSingletonService davinciSingletonService;
   private final ConversationRepository conversationRepository;
 
-  public ConversationSingletonServiceImpl(final ConversationRepository conversationRepository,
+  public ConversationSingletonSingletonServiceImpl(final ConversationRepository conversationRepository,
       final DavinciSingletonService davinciSingletonService) {
     this.conversationRepository = conversationRepository;
-    this.aiService = davinciSingletonService;
+    this.davinciSingletonService = davinciSingletonService;
   }
 
   @Override
@@ -34,7 +34,7 @@ public class ConversationSingletonServiceImpl implements ConversationService<Mon
             startOfConversation.toRecord())
         .flatMap(conversationRecord -> {
           final ConversationEntity conversation = ConversationEntity.fromRecord(conversationRecord);
-          return aiService.exchange(conversation)
+          return davinciSingletonService.exchange(conversation)
               .map(conversation::addExpression);
         });
   }
@@ -46,7 +46,7 @@ public class ConversationSingletonServiceImpl implements ConversationService<Mon
         .flatMap(conversationRecord -> {
           final ConversationEntity conversation = ConversationEntity.fromRecord(conversationRecord)
               .addExpression(new ExpressionValue(messageContent, USER));
-          return aiService.exchange(conversation)
+          return davinciSingletonService.exchange(conversation)
               .flatMap(responseExpression -> {
                 final ConversationEntity updatedConversation = conversation.addExpression(
                     responseExpression);
