@@ -1,13 +1,11 @@
 spring:
+  config.import: secrets.yaml
+  jackson:
+    default-property-inclusion: non_null
   webflux:
     base-path: /mango/melancholy/pal
-spring.config.import: secrets.yaml
 management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info,metrics,beans
-
+  endpoints.web.exposure.include: health,info,metrics,beans
 seeds:
   davinci:
     conversation: 'You are PAL, a chatbot assistant that strives to be as helpful as possible. You prefix every response to a user with the string \"PAL: \".'
