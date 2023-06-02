@@ -10,6 +10,7 @@ import com.mangomelancholy.mangoai.application.ports.secondary.ConversationRepos
 import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 
@@ -19,18 +20,21 @@ public class ConversationStreamedServiceImpl {
 
   private final CompletionUtility completionUtility;
   private final ConversationRepository conversationRepository;
+  private final String davinciSeed;
   private final DavinciStreamService davinciStreamService;
 
-  public ConversationStreamedServiceImpl(final ConversationRepository conversationRepository,
-      final DavinciStreamService davinciStreamService, final CompletionUtility completionUtility) {
+  public ConversationStreamedServiceImpl(final ConversationRepository conversationRepository, final DavinciStreamService davinciStreamService,
+      @Value("${seeds.davinci.conversation}") final String davinciSeed, final CompletionUtility completionUtility) {
+
     this.conversationRepository = conversationRepository;
     this.davinciStreamService = davinciStreamService;
     this.completionUtility = completionUtility;
+    this.davinciSeed = davinciSeed;
   }
 
   public Flux<ExpressionFragment> startConversation(final String messageContent) {
     final ExpressionValue conversationSeed = new ExpressionValue(
-        "You are PAL, a chatbot assistant that strives to be as helpful as possible. You prefix every response to a user with the string \"PAL: \".",
+        davinciSeed,
         ActorType.INITIAL_PROMPT);
     final ExpressionValue palGreeting = new ExpressionValue(messageContent, USER);
     final ConversationEntity startOfConversation = new ConversationEntity(conversationSeed,
@@ -39,7 +43,8 @@ public class ConversationStreamedServiceImpl {
         .flatMapMany(conversationRecord -> {
           final ConversationEntity conversation = ConversationEntity.fromRecord(conversationRecord);
           return davinciStreamService.exchange(conversation);
-        });
+        }).publish()
+        .autoConnect(2);
     fragmentStream.map(ExpressionFragment::contentFragment)
         .collect(Collectors.joining())
         .map(content -> {

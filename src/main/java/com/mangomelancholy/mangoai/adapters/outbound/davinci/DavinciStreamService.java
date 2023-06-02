@@ -8,6 +8,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 @Service
 public class DavinciStreamService {
@@ -43,6 +44,14 @@ public class DavinciStreamService {
             }
           }
         })
+        // in case Davinci gets confused with the prefix.
+        .concatWith(Mono.defer(() -> {
+          if (!attributionRemoved.get()) {
+            return Mono.just(sb.toString());
+          } else {
+            return Mono.empty();
+          }
+        }))
         .index()
         .map(tuple -> new ExpressionFragment((String) tuple.getT2(), conversationEntity.getConversationId(), tuple.getT1()));
   }
