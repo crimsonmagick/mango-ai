@@ -1,17 +1,16 @@
 package com.mangomelancholy.mangoai.adapters.outbound.davinci;
 
-import com.mangomelancholy.mangoai.application.conversation.ExpressionFragment;
 import com.mangomelancholy.mangoai.application.conversation.ExpressionValue;
 import com.mangomelancholy.mangoai.application.conversation.ExpressionValue.ActorType;
 import com.mangomelancholy.mangoai.infrastructure.TextCompletion;
 import org.springframework.stereotype.Component;
 
 @Component
-public class CompletionMapper {
+public class CompletionUtility {
 
   protected static final String ATTRIBUTION = ActorType.PAL + ": ";
 
-  public String extractFragment(final TextCompletion textCompletion) {
+  public String extractChoiceText(final TextCompletion textCompletion) {
     return textCompletion.choices().stream()
         .findFirst()
         .orElseThrow(() -> new RuntimeException("No choice provided by completion."))
@@ -22,12 +21,8 @@ public class CompletionMapper {
     return content.lastIndexOf(ATTRIBUTION);
   }
 
-  public ExpressionFragment mapFragment(final TextCompletion textCompletion, final String conversationId, final long sequenceNumber) {
-    return new ExpressionFragment(extractFragment(textCompletion), conversationId, sequenceNumber);
-  }
-
-  public ExpressionValue mapResponse(final TextCompletion response) {
-    final String choiceText = response.choices().get(0).text();
+  public ExpressionValue mapExpressionValue(final TextCompletion response) {
+    final String choiceText = extractChoiceText(response);
     final String normalizedChoiceText = normalizeChoice(choiceText);
     return new ExpressionValue(normalizedChoiceText, ActorType.PAL);
   }

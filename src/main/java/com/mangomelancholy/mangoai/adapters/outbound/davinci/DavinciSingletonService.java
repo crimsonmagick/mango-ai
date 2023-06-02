@@ -16,15 +16,15 @@ public class DavinciSingletonService implements AIService<Mono<ExpressionValue>>
   private static final Logger log = LogManager.getLogger(DavinciSingletonService.class);
   private final OpenAICompletionsClient completionsClient;
   private final ConversationSerializer conversationSerializer;
-  private final CompletionMapper completionMapper;
+  private final CompletionUtility completionUtility;
 
 
   public DavinciSingletonService(final OpenAICompletionsClient completionsClient,
       final ConversationSerializer conversationSerializer,
-      final CompletionMapper completionMapper) {
+      final CompletionUtility completionUtility) {
     this.completionsClient = completionsClient;
     this.conversationSerializer = conversationSerializer;
-    this.completionMapper = completionMapper;
+    this.completionUtility = completionUtility;
   }
 
   @Override
@@ -38,7 +38,7 @@ public class DavinciSingletonService implements AIService<Mono<ExpressionValue>>
             log.error("Invalid response, response={}", response);
             throw new RuntimeException(String.format("Invalid response, response=%s", response));
           }
-          return completionMapper.mapResponse(response);
+          return completionUtility.mapExpressionValue(response);
         });
   }
 

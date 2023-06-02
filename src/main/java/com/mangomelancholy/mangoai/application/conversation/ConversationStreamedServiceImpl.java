@@ -3,7 +3,7 @@ package com.mangomelancholy.mangoai.application.conversation;
 import static com.mangomelancholy.mangoai.application.conversation.ExpressionValue.ActorType.PAL;
 import static com.mangomelancholy.mangoai.application.conversation.ExpressionValue.ActorType.USER;
 
-import com.mangomelancholy.mangoai.adapters.outbound.davinci.CompletionMapper;
+import com.mangomelancholy.mangoai.adapters.outbound.davinci.CompletionUtility;
 import com.mangomelancholy.mangoai.adapters.outbound.davinci.DavinciStreamService;
 import com.mangomelancholy.mangoai.application.conversation.ExpressionValue.ActorType;
 import com.mangomelancholy.mangoai.application.ports.secondary.ConversationRepository;
@@ -17,15 +17,15 @@ import reactor.core.publisher.Flux;
 public class ConversationStreamedServiceImpl {
   private static final Logger log = LogManager.getLogger(ConversationStreamedServiceImpl.class);
 
-  private final CompletionMapper completionMapper;
+  private final CompletionUtility completionUtility;
   private final ConversationRepository conversationRepository;
   private final DavinciStreamService davinciStreamService;
 
   public ConversationStreamedServiceImpl(final ConversationRepository conversationRepository,
-      final DavinciStreamService davinciStreamService, final CompletionMapper completionMapper) {
+      final DavinciStreamService davinciStreamService, final CompletionUtility completionUtility) {
     this.conversationRepository = conversationRepository;
     this.davinciStreamService = davinciStreamService;
-    this.completionMapper = completionMapper;
+    this.completionUtility = completionUtility;
   }
 
   public Flux<ExpressionFragment> startConversation(final String messageContent) {
@@ -43,7 +43,7 @@ public class ConversationStreamedServiceImpl {
     fragmentStream.map(ExpressionFragment::contentFragment)
         .collect(Collectors.joining())
         .map(content -> {
-          final String normalizedContent = completionMapper.normalizeChoice(content);
+          final String normalizedContent = completionUtility.normalizeChoice(content);
           return startOfConversation.addExpression(new ExpressionValue(normalizedContent, PAL));
         })
         .doOnNext(updatedConversation -> conversationRepository.update(updatedConversation.toRecord()))

@@ -13,15 +13,15 @@ import reactor.core.publisher.Flux;
 public class DavinciStreamService {
 
   private static final Logger log = LogManager.getLogger(DavinciStreamService.class);
-  private final CompletionMapper completionMapper;
+  private final CompletionUtility completionUtility;
   private final OpenAICompletionsClient completionsClient;
   private final ConversationSerializer conversationSerializer;
 
   public DavinciStreamService(final OpenAICompletionsClient completionsClient,
-      final ConversationSerializer conversationSerializer, final CompletionMapper completionMapper) {
+      final ConversationSerializer conversationSerializer, final CompletionUtility completionUtility) {
     this.completionsClient = completionsClient;
     this.conversationSerializer = conversationSerializer;
-    this.completionMapper = completionMapper;
+    this.completionUtility = completionUtility;
   }
 
   public Flux<ExpressionFragment> exchange(final ConversationEntity conversationEntity) {
@@ -30,16 +30,16 @@ public class DavinciStreamService {
     return completionsClient.streamed()
         .complete(conversationSerializer.serializeConversation(conversationEntity))
         .handle((textCompletion, sink) -> {
-          final String contentFragment = completionMapper.extractFragment(textCompletion);
+          final String contentFragment = completionUtility.extractChoiceText(textCompletion);
           if (attributionRemoved.get()) {
             sink.next(contentFragment);
           } else {
             sb.append(contentFragment);
             final String bufferedString = sb.toString();
-            final int index = completionMapper.lastIndexOfAttribution(bufferedString);
+            final int index = completionUtility.lastIndexOfAttribution(bufferedString);
             if (index != -1) {
               attributionRemoved.set(true);
-              sink.next(completionMapper.normalizeChoice(bufferedString));
+              sink.next(completionUtility.normalizeChoice(bufferedString));
             }
           }
         })
