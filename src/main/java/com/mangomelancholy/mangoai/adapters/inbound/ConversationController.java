@@ -20,12 +20,12 @@ public class ConversationController {
     this.conversationSingletonService = conversationSingletonService;
   }
 
-  @GetMapping("/conversations")
+  @GetMapping("/singleton/conversations")
   public Mono<ExpressionJson> getConversations() {
     return Mono.just(new ExpressionJson(null, "Hello there, I'm PAL! Please start a new conversation."));
   }
 
-  @PostMapping("/conversations")
+  @PostMapping("/singleton/conversations")
   public Mono<ExpressionJson> startConversation(@RequestBody ExpressionJson message) {
     return conversationSingletonService.startConversation(message.content())
         .map(conversation -> new ExpressionJson(conversation.getConversationId(),
@@ -35,7 +35,7 @@ public class ConversationController {
         });
   }
 
-  @PostMapping("/conversations/{id}/expressions")
+  @PostMapping("/singleton/conversations/{id}/expressions")
   public Mono<ExpressionJson> sendExpression(@PathVariable String id, @RequestBody ExpressionJson expressionJson) {
     return conversationSingletonService.sendExpression(id, expressionJson.content())
         .map(expressionValue -> new ExpressionJson(id, expressionValue.content()))

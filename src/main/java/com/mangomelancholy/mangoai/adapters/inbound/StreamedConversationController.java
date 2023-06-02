@@ -7,8 +7,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.reactive.function.server.ServerRequest;
 import reactor.core.publisher.Flux;
 
 @RestController
@@ -22,9 +22,8 @@ public class StreamedConversationController {
   }
 
   @PostMapping(value = "/streamed/conversations", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_NDJSON_VALUE)
-  public Flux<ExpressionFragment> startStreamedConversation(final ServerRequest request) {
-    return request.bodyToMono(String.class)
-        .flatMapMany(conversationStreamedService::startConversation)
+  public Flux<ExpressionFragment> startStreamedConversation(final @RequestBody ExpressionJson expressionJson) {
+    return conversationStreamedService.startConversation(expressionJson.content())
         .doOnNext(event -> {
           if (event == null) {
             log.warn("Received null response from server.");

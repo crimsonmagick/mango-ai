@@ -34,9 +34,9 @@ public class ConversationStreamedServiceImpl {
     final ExpressionValue conversationSeed = new ExpressionValue(
         davinciSeed,
         ActorType.INITIAL_PROMPT);
-    final ExpressionValue palGreeting = new ExpressionValue(messageContent, USER);
+    final ExpressionValue userGreeting = new ExpressionValue(messageContent, USER);
     final ConversationEntity startOfConversation = new ConversationEntity(conversationSeed,
-        palGreeting);
+        userGreeting);
     final Flux<ExpressionFragment> fragmentStream = conversationRepository.create(startOfConversation.toRecord())
         .flatMapMany(conversationRecord -> {
           final ConversationEntity conversation = ConversationEntity.fromRecord(conversationRecord);

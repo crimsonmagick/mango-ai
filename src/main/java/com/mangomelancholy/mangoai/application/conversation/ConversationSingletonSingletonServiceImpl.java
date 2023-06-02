@@ -27,9 +27,9 @@ public class ConversationSingletonSingletonServiceImpl implements ConversationSi
     final ExpressionValue conversationSeed = new ExpressionValue(
         "You are PAL, a chatbot assistant that strives to be as helpful as possible. You prefix every response to a user with the string \"PAL: \".",
         ActorType.INITIAL_PROMPT);
-    final ExpressionValue palGreeting = new ExpressionValue(messageContent, USER);
+    final ExpressionValue userGreeting = new ExpressionValue(messageContent, USER);
     final ConversationEntity startOfConversation = new ConversationEntity(conversationSeed,
-        palGreeting);
+        userGreeting);
     return conversationRepository.create(
             startOfConversation.toRecord())
         .flatMap(conversationRecord -> {

@@ -1,0 +1,243 @@
+{
+	"info": {
+		"_postman_id": "e7bb3edc-720a-4e47-be21-243f03d9b436",
+		"name": "AI API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "GET",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"content\": \"Hey nice to meet you!\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/mango/melancholy/pal/singleton/conversations",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"mango",
+						"melancholy",
+						"pal",
+						"singleton",
+						"conversations"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "POST NEW",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"content\": \"Hey how's it going?\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/mango/melancholy/pal/singleton/conversations",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"mango",
+						"melancholy",
+						"pal",
+						"singleton",
+						"conversations"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "POST Expression",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"content\": \"Give me an example of things you can help with.\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/mango/melancholy/pal/singleton/conversations/:uuid/expressions",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"mango",
+						"melancholy",
+						"pal",
+						"singleton",
+						"conversations",
+						":uuid",
+						"expressions"
+					],
+					"variable": [
+						{
+							"key": "uuid",
+							"value": "cf3c4ba2-21e6-49f2-8d0e-7e15d041a876"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "POST NEW Streamed",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Origin",
+						"value": "http://localhost:3000/",
+						"type": "default"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"content\": \"You are a chatbot. Please tell me about how you see the world\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/mango/melancholy/pal/streamed/conversations",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"mango",
+						"melancholy",
+						"pal",
+						"streamed",
+						"conversations"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Preflight Streamed Expression",
+			"request": {
+				"method": "OPTIONS",
+				"header": [
+					{
+						"key": "Accept",
+						"value": " */*",
+						"type": "text"
+					},
+					{
+						"key": "Accept-Language",
+						"value": " en-US,en;q=0.5",
+						"type": "text"
+					},
+					{
+						"key": "Accept-Encoding",
+						"value": " gzip, deflate, br",
+						"type": "text"
+					},
+					{
+						"key": "Access-Control-Request-Method",
+						"value": " POST",
+						"type": "text"
+					},
+					{
+						"key": "Access-Control-Request-Headers",
+						"value": " content-type,goodtimes",
+						"type": "text"
+					},
+					{
+						"key": "Referer",
+						"value": " http://localhost:3000/",
+						"type": "text"
+					},
+					{
+						"key": "Origin",
+						"value": " http://localhost:3000",
+						"type": "text"
+					},
+					{
+						"key": "Connection",
+						"value": " keep-alive",
+						"type": "text"
+					},
+					{
+						"key": "Sec-Fetch-Dest",
+						"value": " empty",
+						"type": "text"
+					},
+					{
+						"key": "Sec-Fetch-Mode",
+						"value": " cors",
+						"type": "text"
+					},
+					{
+						"key": "Sec-Fetch-Site",
+						"value": " same-site",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/mango/melancholy/pal/streaming/conversations/expressions",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"mango",
+						"melancholy",
+						"pal",
+						"streaming",
+						"conversations",
+						"expressions"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
