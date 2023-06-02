@@ -1,15 +1,10 @@
 package com.mangomelancholy.mangoai.adapters.inbound;
 
-import static com.mangomelancholy.mangoai.application.conversation.ExpressionValue.ActorType.INITIAL_PROMPT;
-import static com.mangomelancholy.mangoai.application.conversation.ExpressionValue.ActorType.USER;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 
-import com.mangomelancholy.mangoai.adapters.outbound.davinci.DavinciStreamService;
-import com.mangomelancholy.mangoai.application.conversation.ConversationEntity;
 import com.mangomelancholy.mangoai.application.conversation.ConversationSingletonServiceImpl;
 import com.mangomelancholy.mangoai.application.conversation.ConversationStreamedServiceImpl;
 import com.mangomelancholy.mangoai.application.conversation.ExpressionFragment;
-import com.mangomelancholy.mangoai.application.conversation.ExpressionValue;
 import java.util.Objects;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

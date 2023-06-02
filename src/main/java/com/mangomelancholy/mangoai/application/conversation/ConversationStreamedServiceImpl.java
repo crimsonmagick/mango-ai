@@ -8,11 +8,14 @@ import com.mangomelancholy.mangoai.adapters.outbound.davinci.DavinciStreamServic
 import com.mangomelancholy.mangoai.application.conversation.ExpressionValue.ActorType;
 import com.mangomelancholy.mangoai.application.ports.secondary.ConversationRepository;
 import java.util.stream.Collectors;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 
 @Service
 public class ConversationStreamedServiceImpl {
+  private static final Logger log = LogManager.getLogger(ConversationStreamedServiceImpl.class);
 
   private final CompletionMapper completionMapper;
   private final ConversationRepository conversationRepository;
@@ -44,6 +47,7 @@ public class ConversationStreamedServiceImpl {
           return startOfConversation.addExpression(new ExpressionValue(normalizedContent, PAL));
         })
         .doOnNext(updatedConversation -> conversationRepository.update(updatedConversation.toRecord()))
+        .doOnError(throwable -> log.info("Error updating conversation with PAL response.", throwable))
         .subscribe();
     return fragmentStream;
   }

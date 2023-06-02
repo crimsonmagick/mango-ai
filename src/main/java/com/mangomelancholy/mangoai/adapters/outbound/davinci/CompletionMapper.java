@@ -10,6 +10,22 @@ import org.springframework.stereotype.Component;
 public class CompletionMapper {
 
   protected static final String ATTRIBUTION = ActorType.PAL + ": ";
+
+  public String extractFragment(final TextCompletion textCompletion) {
+    return textCompletion.choices().stream()
+        .findFirst()
+        .orElseThrow(() -> new RuntimeException("No choice provided by completion."))
+        .text();
+  }
+
+  public int lastIndexOfAttribution(final String content) {
+    return content.lastIndexOf(ATTRIBUTION);
+  }
+
+  public ExpressionFragment mapFragment(final TextCompletion textCompletion, final String conversationId, final long sequenceNumber) {
+    return new ExpressionFragment(extractFragment(textCompletion), conversationId, sequenceNumber);
+  }
+
   public ExpressionValue mapResponse(final TextCompletion response) {
     final String choiceText = response.choices().get(0).text();
     final String normalizedChoiceText = normalizeChoice(choiceText);
@@ -17,7 +33,7 @@ public class CompletionMapper {
   }
 
   public String normalizeChoice(final String choiceText) {
-    final int attributionIndex = choiceText.lastIndexOf(ATTRIBUTION);
+    final int attributionIndex = lastIndexOfAttribution(choiceText);
     final String palResponse;
     if (attributionIndex > -1) {
       palResponse = choiceText.substring(attributionIndex + ATTRIBUTION.length());
@@ -25,14 +41,6 @@ public class CompletionMapper {
       palResponse = choiceText;
     }
     return palResponse;
-  }
-
-  public ExpressionFragment mapFragment(final TextCompletion textCompletion, final long sequenceNumber) {
-    final String contentFragment = textCompletion.choices().stream()
-        .findFirst()
-        .orElseThrow(() -> new RuntimeException("No choice provided by completion."))
-        .text();
-    return new ExpressionFragment(contentFragment, sequenceNumber);
   }
 }
 
