@@ -41,19 +41,20 @@ public class ConversationStreamedServiceImpl implements ConversationStreamedServ
     final ExpressionValue userGreeting = new ExpressionValue(messageContent, USER);
     final ConversationEntity startOfConversation = new ConversationEntity(conversationSeed,
         userGreeting);
-    final Flux<ExpressionFragment> fragmentStream = conversationRepository.create(startOfConversation.toRecord())
+    return conversationRepository.create(startOfConversation.toRecord())
         .flatMapMany(conversationRecord -> {
           final ConversationEntity conversation = ConversationEntity.fromRecord(conversationRecord);
-          return davinciStreamedService.exchange(conversation);
-        }).publish()
-        .autoConnect(2);
-    fragmentStream.map(ExpressionFragment::contentFragment)
-        .collect(Collectors.joining())
-        .map(content -> startOfConversation.addExpression(new ExpressionValue(content, PAL)))
-        .doOnNext(updatedConversation -> conversationRepository.update(updatedConversation.toRecord()))
-        .doOnError(throwable -> log.info("Error updating conversation with PAL response.", throwable))
-        .subscribe();
-    return fragmentStream;
+          Flux<ExpressionFragment> fragmentStream = davinciStreamedService.exchange(conversation)
+              .publish()
+              .autoConnect(2);
+          fragmentStream.map(ExpressionFragment::contentFragment)
+              .collect(Collectors.joining())
+              .map(content -> conversation.addExpression(new ExpressionValue(content, PAL)))
+              .doOnNext(updatedConversation -> conversationRepository.update(updatedConversation.toRecord()))
+              .doOnError(throwable -> log.info("Error updating conversation with PAL response.", throwable))
+              .subscribe();
+          return fragmentStream;
+        });
   }
 
   @Override
