@@ -5,6 +5,7 @@ import static com.mangomelancholy.mangoai.application.conversation.ExpressionVal
 
 import com.mangomelancholy.mangoai.adapters.outbound.davinci.DavinciStreamedStreamedService;
 import com.mangomelancholy.mangoai.application.conversation.ExpressionValue.ActorType;
+import com.mangomelancholy.mangoai.application.ports.primary.ConversationStreamedService;
 import com.mangomelancholy.mangoai.application.ports.secondary.ConversationRepository;
 import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
@@ -14,7 +15,7 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 
 @Service
-public class ConversationStreamedServiceImpl {
+public class ConversationStreamedServiceImpl implements ConversationStreamedService<ExpressionFragment> {
 
   private static final Logger log = LogManager.getLogger(ConversationStreamedServiceImpl.class);
 
@@ -30,6 +31,7 @@ public class ConversationStreamedServiceImpl {
     this.davinciSeed = davinciSeed;
   }
 
+  @Override
   public Flux<ExpressionFragment> startConversation(final String messageContent) {
     final ExpressionValue conversationSeed = new ExpressionValue(
         davinciSeed,
@@ -50,6 +52,25 @@ public class ConversationStreamedServiceImpl {
         .doOnError(throwable -> log.info("Error updating conversation with PAL response.", throwable))
         .subscribe();
     return fragmentStream;
+  }
+
+  @Override
+  public Flux<ExpressionFragment> sendExpression(final String conversationId, final String messageContent) {
+    return conversationRepository.getConversation(conversationId)
+        .flatMapMany(conversationRecord -> {
+          final ConversationEntity conversation = ConversationEntity.fromRecord(conversationRecord)
+              .addExpression(new ExpressionValue(messageContent, USER));
+          final Flux<ExpressionFragment> fragmentStream = davinciStreamedService.exchange(conversation)
+              .publish()
+              .autoConnect(2);
+          fragmentStream.map(ExpressionFragment::contentFragment)
+              .collect(Collectors.joining())
+              .map(content -> conversation.addExpression(new ExpressionValue(content, PAL)))
+              .doOnNext(updatedConversation -> conversationRepository.update(updatedConversation.toRecord()))
+              .doOnError(throwable -> log.info("Error updating conversation with PAL response.", throwable))
+              .subscribe();
+          return fragmentStream;
+        });
   }
 
 }
