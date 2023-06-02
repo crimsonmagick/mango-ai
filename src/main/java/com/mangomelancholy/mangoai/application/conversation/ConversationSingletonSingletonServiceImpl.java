@@ -48,9 +48,10 @@ public class ConversationSingletonSingletonServiceImpl implements ConversationSi
     return conversationRepository.create(
             startOfConversation.toRecord())
         .flatMap(conversationRecord -> {
-          final ConversationEntity conversation = ConversationEntity.fromRecord(conversationRecord);
-          return davinciSingletonService.exchange(conversation)
-              .map(conversation::addExpression);
+          final ConversationEntity savedConversation = ConversationEntity.fromRecord(conversationRecord);
+          return davinciSingletonService.exchange(savedConversation)
+              .map(savedConversation::addExpression)
+              .doOnNext(conversation -> conversationRepository.update(conversation.toRecord()));
         });
   }
 
