@@ -1,6 +1,8 @@
 package com.mangomelancholy.mangoai.adapters.inbound;
 
 import com.mangomelancholy.mangoai.application.conversation.ConversationSingletonSingletonServiceImpl;
+import java.util.List;
+import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -25,20 +27,28 @@ public class ConversationController {
     return Mono.just(new ExpressionJson(null, "Hello there, I'm PAL! Please start a new conversation."));
   }
 
-  @PostMapping("/singleton/conversations")
-  public Mono<ExpressionJson> startConversation(@RequestBody ExpressionJson message) {
-    return conversationSingletonService.startConversation(message.content())
-        .map(conversation -> new ExpressionJson(conversation.getConversationId(),
-            conversation.getLastExpression().content()))
-        .doOnError(throwable -> {
-          log.error("Error processing request.", throwable);
-        });
+  @GetMapping("/singleton/conversations/{id}/expressions")
+  public Mono<List<ExpressionJson>> getExpressions(@PathVariable String id) {
+    return conversationSingletonService.getExpressions(id).map(values -> values.stream()
+        .map(value -> new ExpressionJson(null, value.content()))
+        .collect(Collectors.toList())
+    );
   }
 
   @PostMapping("/singleton/conversations/{id}/expressions")
   public Mono<ExpressionJson> sendExpression(@PathVariable String id, @RequestBody ExpressionJson expressionJson) {
     return conversationSingletonService.sendExpression(id, expressionJson.content())
         .map(expressionValue -> new ExpressionJson(id, expressionValue.content()))
+        .doOnError(throwable -> {
+          log.error("Error processing request.", throwable);
+        });
+  }
+
+  @PostMapping("/singleton/conversations")
+  public Mono<ExpressionJson> startConversation(@RequestBody ExpressionJson message) {
+    return conversationSingletonService.startConversation(message.content())
+        .map(conversation -> new ExpressionJson(conversation.getConversationId(),
+            conversation.getLastExpression().content()))
         .doOnError(throwable -> {
           log.error("Error processing request.", throwable);
         });

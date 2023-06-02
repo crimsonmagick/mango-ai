@@ -4,22 +4,33 @@ import static com.mangomelancholy.mangoai.application.conversation.ExpressionVal
 
 import com.mangomelancholy.mangoai.adapters.outbound.davinci.DavinciSingletonService;
 import com.mangomelancholy.mangoai.application.conversation.ExpressionValue.ActorType;
+import com.mangomelancholy.mangoai.application.ports.primary.ConversationNotFound;
 import com.mangomelancholy.mangoai.application.ports.primary.ConversationSingletonService;
 import com.mangomelancholy.mangoai.application.ports.secondary.ConversationRepository;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
 @Service
-public class ConversationSingletonSingletonServiceImpl implements ConversationSingletonService<Mono<ConversationEntity>,
-    Mono<ExpressionValue>> {
+public class ConversationSingletonSingletonServiceImpl implements ConversationSingletonService {
 
-  private final DavinciSingletonService davinciSingletonService;
   private final ConversationRepository conversationRepository;
+  private final DavinciSingletonService davinciSingletonService;
 
   public ConversationSingletonSingletonServiceImpl(final ConversationRepository conversationRepository,
       final DavinciSingletonService davinciSingletonService) {
     this.conversationRepository = conversationRepository;
     this.davinciSingletonService = davinciSingletonService;
+  }
+
+  @Override
+  public Mono<List<ExpressionValue>> getExpressions(final String conversationId) {
+    return conversationRepository.getExpressions(conversationId)
+        .switchIfEmpty(Mono.error(new ConversationNotFound(conversationId)))
+        .map(ExpressionValue::fromRecord)
+        .collect(Collectors.toList());
   }
 
   @Override
@@ -43,6 +54,7 @@ public class ConversationSingletonSingletonServiceImpl implements ConversationSi
   public Mono<ExpressionValue> sendExpression(final String conversationId,
       final String messageContent) {
     return conversationRepository.getConversation(conversationId)
+        .switchIfEmpty(Mono.error(new ConversationNotFound(conversationId)))
         .flatMap(conversationRecord -> {
           final ConversationEntity conversation = ConversationEntity.fromRecord(conversationRecord)
               .addExpression(new ExpressionValue(messageContent, USER));

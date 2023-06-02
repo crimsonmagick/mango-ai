@@ -5,6 +5,7 @@ import static com.mangomelancholy.mangoai.application.conversation.ExpressionVal
 
 import com.mangomelancholy.mangoai.adapters.outbound.davinci.DavinciStreamedStreamedService;
 import com.mangomelancholy.mangoai.application.conversation.ExpressionValue.ActorType;
+import com.mangomelancholy.mangoai.application.ports.primary.ConversationNotFound;
 import com.mangomelancholy.mangoai.application.ports.primary.ConversationStreamedService;
 import com.mangomelancholy.mangoai.application.ports.secondary.ConversationRepository;
 import java.util.stream.Collectors;
@@ -13,6 +14,7 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 @Service
 public class ConversationStreamedServiceImpl implements ConversationStreamedService<ExpressionFragment> {
@@ -57,6 +59,7 @@ public class ConversationStreamedServiceImpl implements ConversationStreamedServ
   @Override
   public Flux<ExpressionFragment> sendExpression(final String conversationId, final String messageContent) {
     return conversationRepository.getConversation(conversationId)
+        .switchIfEmpty(Mono.error(new ConversationNotFound(conversationId)))
         .flatMapMany(conversationRecord -> {
           final ConversationEntity conversation = ConversationEntity.fromRecord(conversationRecord)
               .addExpression(new ExpressionValue(messageContent, USER));

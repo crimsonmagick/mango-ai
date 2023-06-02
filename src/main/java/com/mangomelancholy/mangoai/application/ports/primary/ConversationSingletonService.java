@@ -2,12 +2,15 @@ package com.mangomelancholy.mangoai.application.ports.primary;
 
 import com.mangomelancholy.mangoai.application.conversation.ConversationEntity;
 import com.mangomelancholy.mangoai.application.conversation.ExpressionValue;
-import org.reactivestreams.Publisher;
+import java.util.List;
+import reactor.core.publisher.Mono;
 
-public interface ConversationSingletonService<T extends Publisher<ConversationEntity>, U extends Publisher<ExpressionValue>> {
+public interface ConversationSingletonService {
 
-  T startConversation(String messageContent);
+  Mono<List<ExpressionValue>> getExpressions(String conversationId);
 
-  U sendExpression(String conversationId, String messageContent);
+  Mono<ConversationEntity> startConversation(String messageContent);
+
+  Mono<ExpressionValue> sendExpression(String conversationId, String messageContent);
 
 }
