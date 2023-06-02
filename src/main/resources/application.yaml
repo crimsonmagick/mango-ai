@@ -2,6 +2,11 @@ spring:
   webflux:
     base-path: /mango/melancholy/pal
 spring.config.import: secrets.yaml
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,beans
 
 seeds:
   davinci:
