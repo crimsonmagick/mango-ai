@@ -8,7 +8,6 @@ import com.mangomelancholy.mangoai.application.ports.primary.ConversationNotFoun
 import com.mangomelancholy.mangoai.application.ports.primary.ConversationSingletonService;
 import com.mangomelancholy.mangoai.application.ports.secondary.ConversationRepository;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
@@ -31,6 +30,11 @@ public class ConversationSingletonSingletonServiceImpl implements ConversationSi
         .switchIfEmpty(Mono.error(new ConversationNotFound(conversationId)))
         .map(ExpressionValue::fromRecord)
         .collect(Collectors.toList());
+  }
+
+  @Override
+  public Mono<List<String>> getConversationIds() {
+    return conversationRepository.getConversationIds().collect(Collectors.toList());
   }
 
   @Override

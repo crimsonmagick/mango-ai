@@ -37,6 +37,11 @@ public class ConversationRepositoryImpl implements ConversationRepository {
   }
 
   @Override
+  public Flux<String> getConversationIds() {
+    return Flux.fromIterable(conversations.keySet());
+  }
+
+  @Override
   public Flux<ExpressionRecord> getExpressions(final String conversationId) {
     ConversationRecord conversationRecord = conversations.get(conversationId);
     if (conversationRecord == null) {

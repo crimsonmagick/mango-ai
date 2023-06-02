@@ -13,18 +13,18 @@ import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
 
 @RestController
-public class ConversationController {
+public class ConversationSingletonController {
 
-  private static final Logger log = LogManager.getLogger(ConversationController.class);
+  private static final Logger log = LogManager.getLogger(ConversationSingletonController.class);
   private final ConversationSingletonSingletonServiceImpl conversationSingletonService;
 
-  public ConversationController(final ConversationSingletonSingletonServiceImpl conversationSingletonService) {
+  public ConversationSingletonController(final ConversationSingletonSingletonServiceImpl conversationSingletonService) {
     this.conversationSingletonService = conversationSingletonService;
   }
 
-  @GetMapping("/singleton/conversations")
-  public Mono<ExpressionJson> getConversations() {
-    return Mono.just(new ExpressionJson(null, "Hello there, I'm PAL! Please start a new conversation."));
+  @GetMapping("/singleton/conversations/ids")
+  public Mono<List<String>> getConversations() {
+    return conversationSingletonService.getConversationIds();
   }
 
   @GetMapping("/singleton/conversations/{id}/expressions")
