@@ -18,9 +18,12 @@ import reactor.core.publisher.Mono;
 @Component
 public class OpenAICompletionsClient {
 
+  public interface Delegation<T extends Publisher<TextCompletion>> {
+
+    T complete(String prompt);
+  }
+
   private static final Logger log = LogManager.getLogger(OpenAICompletionsClient.class);
-
-
   private final String apiKey;
   private final ObjectMapper objectMapper;
   private final WebClient webClient;
@@ -32,15 +35,13 @@ public class OpenAICompletionsClient {
     this.webClient = WebClient.create("https://api.openai.com/v1/");
   }
 
-  public interface Delegation<T extends Publisher<TextCompletion>> {
 
-    T complete(String prompt);
-  }
 
   public class SingletonDelegation implements Delegation<Mono<TextCompletion>> {
 
     public Mono<TextCompletion> complete(final String prompt) {
-      return OpenAICompletionsClient.this.complete(prompt, false)
+      final OpenAiCompletionsParams params = OpenAiCompletionsParams.builder().stream(false).build();
+      return OpenAICompletionsClient.this.complete(prompt, params)
           .bodyToMono(TextCompletion.class);
     }
   }
@@ -48,7 +49,8 @@ public class OpenAICompletionsClient {
   public class StreamedDelegation implements Delegation<Flux<TextCompletion>> {
 
     public Flux<TextCompletion> complete(final String prompt) {
-      return OpenAICompletionsClient.this.complete(prompt, true)
+      final OpenAiCompletionsParams params = OpenAiCompletionsParams.builder().stream(true).build();
+      return OpenAICompletionsClient.this.complete(prompt, params)
           .bodyToFlux(new ParameterizedTypeReference<ServerSentEvent<String>>() {
           })
           .filter(event -> !"[DONE]".equals(event.data()))
@@ -73,16 +75,16 @@ public class OpenAICompletionsClient {
     return new StreamedDelegation();
   }
 
-  private ResponseSpec complete(final String prompt, final boolean stream) {
+  private ResponseSpec complete(final String prompt, OpenAiCompletionsParams params) {
     final OpenAIRequest request = new OpenAIRequest.Builder()
-        .model("text-davinci-003")
+        .model(params.model() == null ? "text-davinci-003" : params.model())
         .prompt(prompt)
-        .temperature(0.5)
-        .maxTokens(300)
-        .topP(0.3)
-        .frequencyPenalty(0.5)
+        .temperature(params.temperature() == null ? 0.5 : params.temperature())
+        .maxTokens(params.maxTokens() == null ? 300 : params.maxTokens())
+        .topP(params.topP() == null ? 0.3 : params.topP())
+        .frequencyPenalty(params.frequencyPenalty() == null ? 0.5 : params.frequencyPenalty())
         .presencePenalty(0)
-        .stream(stream)
+        .stream(params.stream() != null && params.stream())
         .build();
 
     return webClient.post()
