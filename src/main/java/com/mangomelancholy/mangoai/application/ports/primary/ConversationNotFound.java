@@ -7,7 +7,7 @@ public class ConversationNotFound extends RuntimeException {
     this.conversationId = conversationId;
   }
 
-  private String conversationId;
+  private final String conversationId;
 
   public String getConversationId() {
     return conversationId;
