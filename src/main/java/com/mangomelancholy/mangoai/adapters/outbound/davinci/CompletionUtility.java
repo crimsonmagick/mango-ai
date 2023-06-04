@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class CompletionUtility {
 
-  protected static final String ATTRIBUTION = ActorType.PAL + ": ";
+  protected static final String ATTRIBUTION = ActorType.PAL + ":";
 
   public String extractChoiceText(final TextCompletion textCompletion) {
     return textCompletion.choices().stream()

@@ -2,6 +2,7 @@ package com.mangomelancholy.mangoai.infrastructure;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mangomelancholy.mangoai.infrastructure.ModelRegistry.ModelType;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.reactivestreams.Publisher;
@@ -25,22 +26,26 @@ public class OpenAICompletionsClient {
 
   private static final Logger log = LogManager.getLogger(OpenAICompletionsClient.class);
   private final String apiKey;
+  private final ModelRegistry modelRegistry;
   private final ObjectMapper objectMapper;
   private final WebClient webClient;
 
   public OpenAICompletionsClient(@Value("${pal.secrets.authkey}") final String apiKey,
-      final ObjectMapper objectMapper) {
+      final ObjectMapper objectMapper, final ModelRegistry modelRegistry) {
     this.apiKey = apiKey;
     this.objectMapper = objectMapper;
     this.webClient = WebClient.create("https://api.openai.com/v1/");
+    this.modelRegistry = modelRegistry;
   }
-
 
 
   public class SingletonDelegation implements Delegation<Mono<TextCompletion>> {
 
     public Mono<TextCompletion> complete(final String prompt) {
-      final OpenAiCompletionsParams params = OpenAiCompletionsParams.builder().stream(false).build();
+      final OpenAiCompletionsParams params = OpenAiCompletionsParams.builder()
+          .stream(false)
+          .maxTokens(modelRegistry.getMaxResponseTokens(ModelType.DAVINCI))
+          .build();
       return OpenAICompletionsClient.this.complete(prompt, params)
           .bodyToMono(TextCompletion.class);
     }
@@ -49,7 +54,10 @@ public class OpenAICompletionsClient {
   public class StreamedDelegation implements Delegation<Flux<TextCompletion>> {
 
     public Flux<TextCompletion> complete(final String prompt) {
-      final OpenAiCompletionsParams params = OpenAiCompletionsParams.builder().stream(true).build();
+      final OpenAiCompletionsParams params = OpenAiCompletionsParams.builder()
+          .stream(true)
+          .maxTokens(modelRegistry.getMaxResponseTokens(ModelType.DAVINCI))
+          .build();
       return OpenAICompletionsClient.this.complete(prompt, params)
           .bodyToFlux(new ParameterizedTypeReference<ServerSentEvent<String>>() {
           })
@@ -79,7 +87,7 @@ public class OpenAICompletionsClient {
     final OpenAIRequest request = new OpenAIRequest.Builder()
         .model(params.model() == null ? "text-davinci-003" : params.model())
         .prompt(prompt)
-        .temperature(params.temperature() == null ? 0.5 : params.temperature())
+        .temperature(params.temperature() == null ? 0.9 : params.temperature())
         .maxTokens(params.maxTokens() == null ? 300 : params.maxTokens())
         .topP(params.topP() == null ? 0.3 : params.topP())
         .frequencyPenalty(params.frequencyPenalty() == null ? 0.5 : params.frequencyPenalty())

@@ -16,7 +16,7 @@ public class ConversationSerializer {
   public String serializeConversation(final ConversationEntity conversation) {
     return conversation.getExpressions().stream()
         .map(expressionSerializer::serializeExpression)
-        .collect(Collectors.joining("\n"));
+        .collect(Collectors.joining());
   }
 
 }

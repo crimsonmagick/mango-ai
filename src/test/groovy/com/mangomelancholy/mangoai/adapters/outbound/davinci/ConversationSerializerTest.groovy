@@ -26,7 +26,7 @@ class ConversationSerializerTest extends Specification {
         when:
         final serialized = underTest.serializeConversation(conversation)
         then:
-        4 * mockedExpressionSerializer.serializeExpression(_ as ExpressionValue) >> "dummy data"
+        4 * mockedExpressionSerializer.serializeExpression(_ as ExpressionValue) >> "dummy data\n"
         serialized.split("\n").length == 4
 
     }

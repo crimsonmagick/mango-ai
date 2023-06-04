@@ -13,8 +13,8 @@ public class ExpressionSerializer {
    * @param expression to parse
    * @return a parsed String
    */
-  String serializeExpression(final ExpressionValue expression) {
-    return getPrefix(expression.actor()) + expression.content();
+  public String serializeExpression(final ExpressionValue expression) {
+    return getPrefix(expression.actor()) + expression.content() + "\n";
   }
 
   private String getPrefix(final ActorType actorType) {

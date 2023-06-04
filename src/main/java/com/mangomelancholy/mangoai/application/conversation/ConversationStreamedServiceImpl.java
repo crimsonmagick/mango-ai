@@ -9,11 +9,12 @@ import com.mangomelancholy.mangoai.application.ports.primary.ConversationNotFoun
 import com.mangomelancholy.mangoai.application.ports.primary.ConversationStreamedService;
 import com.mangomelancholy.mangoai.application.ports.secondary.ConversationRepository;
 import com.mangomelancholy.mangoai.application.ports.secondary.MemoryService;
+import com.mangomelancholy.mangoai.infrastructure.ModelRegistry;
+import com.mangomelancholy.mangoai.infrastructure.ModelRegistry.ModelType;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -25,16 +26,14 @@ public class ConversationStreamedServiceImpl implements ConversationStreamedServ
   private static final Logger log = LogManager.getLogger(ConversationStreamedServiceImpl.class);
 
   private final ConversationRepository conversationRepository;
-  @Value("${seeds.davinci.conversation}")
-  private final String davinciSeed;
   private final DavinciStreamedStreamedService davinciStreamedService;
   private final MemoryService memoryService;
+  private final ModelRegistry modelRegistry;
 
   @Override
   public Flux<ExpressionFragment> startConversation(final String messageContent) {
-    final ExpressionValue conversationSeed = new ExpressionValue(
-        davinciSeed,
-        ActorType.INITIAL_PROMPT);
+    final ExpressionValue conversationSeed =
+        new ExpressionValue(modelRegistry.getInitialPrompt(ModelType.DAVINCI), ActorType.INITIAL_PROMPT);
     final ExpressionValue userGreeting = new ExpressionValue(messageContent, USER);
     final ConversationEntity startOfConversation = new ConversationEntity(conversationSeed,
         userGreeting);

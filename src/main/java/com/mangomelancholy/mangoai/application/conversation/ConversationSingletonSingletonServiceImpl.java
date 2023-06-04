@@ -8,6 +8,8 @@ import com.mangomelancholy.mangoai.application.ports.primary.ConversationNotFoun
 import com.mangomelancholy.mangoai.application.ports.primary.ConversationSingletonService;
 import com.mangomelancholy.mangoai.application.ports.secondary.ConversationRepository;
 import com.mangomelancholy.mangoai.application.ports.secondary.MemoryService;
+import com.mangomelancholy.mangoai.infrastructure.ModelRegistry;
+import com.mangomelancholy.mangoai.infrastructure.ModelRegistry.ModelType;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -23,8 +25,8 @@ public class ConversationSingletonSingletonServiceImpl implements ConversationSi
   private final ConversationRepository conversationRepository;
   private final DavinciSingletonService davinciSingletonService;
   private final MemoryService memoryService;
-  @Value("${seeds.davinci.conversation}")
-  private final String davinciSeed;
+
+  private final ModelRegistry modelRegistry;
 
   @Override
   public Mono<List<ExpressionValue>> getExpressions(final String conversationId) {
@@ -42,7 +44,7 @@ public class ConversationSingletonSingletonServiceImpl implements ConversationSi
   @Override
   public Mono<ConversationEntity> startConversation(final String messageContent) {
     final ExpressionValue conversationSeed = new ExpressionValue(
-       davinciSeed, ActorType.INITIAL_PROMPT);
+        modelRegistry.getInitialPrompt(ModelType.DAVINCI), ActorType.INITIAL_PROMPT);
     final ExpressionValue userGreeting = new ExpressionValue(messageContent, USER);
     final ConversationEntity startOfConversation = new ConversationEntity(conversationSeed,
         userGreeting);
