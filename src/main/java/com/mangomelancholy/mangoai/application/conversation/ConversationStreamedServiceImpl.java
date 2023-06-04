@@ -8,7 +8,9 @@ import com.mangomelancholy.mangoai.application.conversation.ExpressionValue.Acto
 import com.mangomelancholy.mangoai.application.ports.primary.ConversationNotFound;
 import com.mangomelancholy.mangoai.application.ports.primary.ConversationStreamedService;
 import com.mangomelancholy.mangoai.application.ports.secondary.ConversationRepository;
+import com.mangomelancholy.mangoai.application.ports.secondary.MemoryService;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
@@ -16,22 +18,17 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+@RequiredArgsConstructor
 @Service
 public class ConversationStreamedServiceImpl implements ConversationStreamedService<ExpressionFragment> {
 
   private static final Logger log = LogManager.getLogger(ConversationStreamedServiceImpl.class);
 
   private final ConversationRepository conversationRepository;
+  @Value("${seeds.davinci.conversation}")
   private final String davinciSeed;
   private final DavinciStreamedStreamedService davinciStreamedService;
-
-  public ConversationStreamedServiceImpl(final ConversationRepository conversationRepository, final DavinciStreamedStreamedService davinciStreamedService,
-      @Value("${seeds.davinci.conversation}") final String davinciSeed) {
-
-    this.conversationRepository = conversationRepository;
-    this.davinciStreamedService = davinciStreamedService;
-    this.davinciSeed = davinciSeed;
-  }
+  private final MemoryService memoryService;
 
   @Override
   public Flux<ExpressionFragment> startConversation(final String messageContent) {
@@ -61,15 +58,17 @@ public class ConversationStreamedServiceImpl implements ConversationStreamedServ
   public Flux<ExpressionFragment> sendExpression(final String conversationId, final String messageContent) {
     return conversationRepository.getConversation(conversationId)
         .switchIfEmpty(Mono.error(new ConversationNotFound(conversationId)))
-        .flatMapMany(conversationRecord -> {
-          final ConversationEntity conversation = ConversationEntity.fromRecord(conversationRecord)
+        .map(ConversationEntity::fromRecord)
+        .flatMapMany(retrievedConversation -> {
+          final ConversationEntity fullConversation = retrievedConversation
               .addExpression(new ExpressionValue(messageContent, USER));
-          final Flux<ExpressionFragment> fragmentStream = davinciStreamedService.exchange(conversation)
+          final ConversationEntity rememberedConversation = memoryService.rememberConversation(fullConversation);
+          final Flux<ExpressionFragment> fragmentStream = davinciStreamedService.exchange(rememberedConversation)
               .publish()
               .autoConnect(2);
           fragmentStream.map(ExpressionFragment::contentFragment)
               .collect(Collectors.joining())
-              .map(content -> conversation.addExpression(new ExpressionValue(content, PAL)))
+              .map(content -> fullConversation.addExpression(new ExpressionValue(content, PAL)))
               .doOnNext(updatedConversation -> conversationRepository.update(updatedConversation.toRecord()))
               .doOnError(throwable -> log.info("Error updating conversation with PAL response.", throwable))
               .subscribe();

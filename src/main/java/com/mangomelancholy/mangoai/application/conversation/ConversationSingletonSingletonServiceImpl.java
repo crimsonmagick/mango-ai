@@ -7,9 +7,11 @@ import com.mangomelancholy.mangoai.application.conversation.ExpressionValue.Acto
 import com.mangomelancholy.mangoai.application.ports.primary.ConversationNotFound;
 import com.mangomelancholy.mangoai.application.ports.primary.ConversationSingletonService;
 import com.mangomelancholy.mangoai.application.ports.secondary.ConversationRepository;
+import com.mangomelancholy.mangoai.application.ports.secondary.MemoryService;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
@@ -20,6 +22,9 @@ public class ConversationSingletonSingletonServiceImpl implements ConversationSi
 
   private final ConversationRepository conversationRepository;
   private final DavinciSingletonService davinciSingletonService;
+  private final MemoryService memoryService;
+  @Value("${seeds.davinci.conversation}")
+  private final String davinciSeed;
 
   @Override
   public Mono<List<ExpressionValue>> getExpressions(final String conversationId) {
@@ -37,8 +42,7 @@ public class ConversationSingletonSingletonServiceImpl implements ConversationSi
   @Override
   public Mono<ConversationEntity> startConversation(final String messageContent) {
     final ExpressionValue conversationSeed = new ExpressionValue(
-        "You are PAL, a chatbot assistant that strives to be as helpful as possible. You prefix every response to a user with the string \"PAL: \".",
-        ActorType.INITIAL_PROMPT);
+       davinciSeed, ActorType.INITIAL_PROMPT);
     final ExpressionValue userGreeting = new ExpressionValue(messageContent, USER);
     final ConversationEntity startOfConversation = new ConversationEntity(conversationSeed,
         userGreeting);
@@ -58,11 +62,12 @@ public class ConversationSingletonSingletonServiceImpl implements ConversationSi
     return conversationRepository.getConversation(conversationId)
         .switchIfEmpty(Mono.error(new ConversationNotFound(conversationId)))
         .flatMap(conversationRecord -> {
-          final ConversationEntity conversation = ConversationEntity.fromRecord(conversationRecord)
+          final ConversationEntity fullConversation = ConversationEntity.fromRecord(conversationRecord)
               .addExpression(new ExpressionValue(messageContent, USER));
-          return davinciSingletonService.exchange(conversation)
+          final ConversationEntity rememberedConversation = memoryService.rememberConversation(fullConversation);
+          return davinciSingletonService.exchange(rememberedConversation)
               .flatMap(responseExpression -> {
-                final ConversationEntity updatedConversation = conversation.addExpression(
+                final ConversationEntity updatedConversation = fullConversation.addExpression(
                     responseExpression);
                 return conversationRepository
                     .update(updatedConversation.toRecord());
