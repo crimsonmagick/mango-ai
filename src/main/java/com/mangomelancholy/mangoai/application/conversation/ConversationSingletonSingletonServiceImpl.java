@@ -9,20 +9,17 @@ import com.mangomelancholy.mangoai.application.ports.primary.ConversationSinglet
 import com.mangomelancholy.mangoai.application.ports.secondary.ConversationRepository;
 import java.util.List;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
+
+@RequiredArgsConstructor
 @Service
 public class ConversationSingletonSingletonServiceImpl implements ConversationSingletonService {
 
   private final ConversationRepository conversationRepository;
   private final DavinciSingletonService davinciSingletonService;
-
-  public ConversationSingletonSingletonServiceImpl(final ConversationRepository conversationRepository,
-      final DavinciSingletonService davinciSingletonService) {
-    this.conversationRepository = conversationRepository;
-    this.davinciSingletonService = davinciSingletonService;
-  }
 
   @Override
   public Mono<List<ExpressionValue>> getExpressions(final String conversationId) {
