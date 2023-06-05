@@ -4,9 +4,8 @@ import com.mangomelancholy.mangoai.application.conversation.ConversationEntity;
 import com.mangomelancholy.mangoai.application.conversation.ExpressionFragment;
 import reactor.core.publisher.Flux;
 
-public interface AIStreamedService {
+public interface AiStreamedService {
 
   Flux<ExpressionFragment> exchange(final ConversationEntity conversationEntity);
-
 
 }

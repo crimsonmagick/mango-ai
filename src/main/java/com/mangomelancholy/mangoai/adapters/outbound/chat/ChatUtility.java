@@ -1,11 +1,10 @@
 package com.mangomelancholy.mangoai.adapters.outbound.chat;
 
 import static com.mangomelancholy.mangoai.application.conversation.ExpressionValue.ActorType.PAL;
-import static java.util.Optional.ofNullable;
 
 import com.mangomelancholy.mangoai.application.conversation.ExpressionValue;
 import com.mangomelancholy.mangoai.infrastructure.chat.ChatResponse;
-import com.mangomelancholy.mangoai.infrastructure.chat.ChatResponse.ChatMessage;
+import com.mangomelancholy.mangoai.infrastructure.chat.ChatResponse.Choice;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Component;
@@ -23,19 +22,21 @@ public class ChatUtility {
   }
 
   public ExpressionValue mapResponse(final ChatResponse response) {
-    if (response == null || response.choices() == null || response.choices().size() < 1
-        || response.choices().get(0) == null || response.choices().get(0).message() == null) {
-      log.error("Invalid response, response={}", response);
-      throw new RuntimeException(String.format("Invalid response, response=%s", response));
-    }
     // assumes there will only be one message in response
-    final ChatMessage chatMessage = response.choices().stream()
+    final Choice choice = response.choices().stream()
         .findAny()
-        .orElseThrow(() -> new RuntimeException("No choice provided by response."))
-        .message();
-    final String content = ofNullable(chatMessage)
-        .orElseThrow(() -> new MissingMessage("No message included in ChatResponse."))
-        .content();
+        .orElseThrow(() -> new RuntimeException("No choice provided by response."));
+    final String content;
+    if (choice.message() != null) {
+      content = choice.message().content();
+    } else if (choice.delta() != null) {
+      content = choice.delta().content();
+    } else {
+      throw new MissingMessage("Neither \"message\" nor \"delta\" is present");
+    }
+    if (content == null) {
+      return null;
+    }
     return new ExpressionValue(content, PAL);
   }
 }

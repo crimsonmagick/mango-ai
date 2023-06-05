@@ -2,7 +2,7 @@ package com.mangomelancholy.mangoai.adapters.outbound.chat;
 
 import com.mangomelancholy.mangoai.application.conversation.ConversationEntity;
 import com.mangomelancholy.mangoai.application.conversation.ExpressionValue;
-import com.mangomelancholy.mangoai.application.conversation.ports.secondary.AISingletonService;
+import com.mangomelancholy.mangoai.application.conversation.ports.secondary.AiSingletonService;
 import com.mangomelancholy.mangoai.infrastructure.chat.ChatResponse.ChatMessage;
 import com.mangomelancholy.mangoai.infrastructure.chat.OpenAIChatClient;
 import java.util.List;
@@ -15,7 +15,7 @@ import reactor.core.publisher.Mono;
 
 @RequiredArgsConstructor
 @Service
-public class GptChatSingletonService implements AISingletonService {
+public class GptChatSingletonService implements AiSingletonService {
 
   private static final Logger log = LogManager.getLogger(GptChatSingletonService.class);
   private final ChatExpressionMapper chatExpressionMapper;

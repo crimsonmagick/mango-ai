@@ -4,6 +4,6 @@ import com.mangomelancholy.mangoai.application.conversation.ConversationEntity;
 
 public interface MemoryService {
 
-  ConversationEntity rememberConversation(ConversationEntity conversation);
+  ConversationEntity rememberConversation(ConversationEntity conversation, String model);
 
 }

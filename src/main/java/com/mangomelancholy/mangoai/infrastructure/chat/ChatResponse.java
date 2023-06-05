@@ -20,7 +20,12 @@ public record ChatResponse(String id, String object, long created, String model,
 
   @Builder
   @JsonInclude(JsonInclude.Include.NON_NULL)
-  public record Choice(ChatMessage message, String finish_reason, int index) {
+  public record Choice(ChatMessage message, String finish_reason, int index, Delta delta) {
+
+  }
+
+  @JsonInclude(JsonInclude.Include.NON_NULL)
+  public record Delta(String content) {
 
   }
 

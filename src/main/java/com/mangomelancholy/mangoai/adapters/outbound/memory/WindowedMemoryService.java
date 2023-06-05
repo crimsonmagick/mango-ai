@@ -20,25 +20,24 @@ import reactor.util.function.Tuples;
 @Service
 public class WindowedMemoryService implements MemoryService {
 
-
-  private final CompletionExpressionSerializer completionExpressionSerializer;
   private final ModelRegistry modelRegistry;
   private final EncodingRegistry registry;
+  private final SerializationDelegator serializationDelegator;
 
-  WindowedMemoryService(final ModelRegistry modelRegistry, final CompletionExpressionSerializer completionExpressionSerializer) {
+  WindowedMemoryService(final ModelRegistry modelRegistry, final SerializationDelegator serializationDelegator) {
     this.modelRegistry = modelRegistry;
+    this.serializationDelegator = serializationDelegator;
     this.registry = Encodings.newDefaultEncodingRegistry();
-    this.completionExpressionSerializer = completionExpressionSerializer;
   }
 
 
   @Override
-  public ConversationEntity rememberConversation(final ConversationEntity conversation) {
+  public ConversationEntity rememberConversation(final ConversationEntity conversation, String model) {
     final long MAX_INPUT_TOKENS = modelRegistry.getMaxInputTokens(ModelType.DAVINCI);
     final Encoding encoding = registry.getEncoding(EncodingType.R50K_BASE);
     final List<Tuple2<Long, ExpressionValue>> tokenPairs = conversation.getExpressions().stream()
         .map(value -> {
-          final String serialized = completionExpressionSerializer.serializeExpression(value);
+          final String serialized = serializationDelegator.serializeAsString(value, model);
           final long tokenCount = encoding.encode(serialized)
               .size();
           return Tuples.of(tokenCount, value);

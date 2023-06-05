@@ -56,12 +56,12 @@ public class OpenAIChatClient {
 
   public class StreamedDelegation implements Delegation<Flux<ChatResponse>> {
 
-    public Flux<ChatResponse> complete(final List<ChatMessage> prompt) {
+    public Flux<ChatResponse> complete(final List<ChatMessage> chatMessages) {
       final OpenAiChatParams params = OpenAiChatParams.builder()
           .stream(true)
           .max_tokens(modelRegistry.getMaxResponseTokens(ModelType.CHAT_GPT))
           .build();
-      return OpenAIChatClient.this.complete(prompt, params)
+      return OpenAIChatClient.this.complete(chatMessages, params)
           .bodyToFlux(new ParameterizedTypeReference<ServerSentEvent<String>>() {
           })
           .filter(event -> !"[DONE]".equals(event.data()))

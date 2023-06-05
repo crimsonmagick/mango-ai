@@ -11,8 +11,8 @@ public interface ConversationSingletonService {
 
   Mono<List<String>> getConversationIds();
 
-  Mono<ConversationEntity> startConversation(String messageContent);
+  Mono<ConversationEntity> startConversation(String messageContent, String model);
 
-  Mono<ExpressionValue> sendExpression(String conversationId, String messageContent);
+  Mono<ExpressionValue> sendExpression(String conversationId, String messageContent, String model);
 
 }

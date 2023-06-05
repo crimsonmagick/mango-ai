@@ -2,7 +2,7 @@ package com.mangomelancholy.mangoai.adapters.outbound.davinci;
 
 import com.mangomelancholy.mangoai.application.conversation.ConversationEntity;
 import com.mangomelancholy.mangoai.application.conversation.ExpressionValue;
-import com.mangomelancholy.mangoai.application.conversation.ports.secondary.AISingletonService;
+import com.mangomelancholy.mangoai.application.conversation.ports.secondary.AiSingletonService;
 import com.mangomelancholy.mangoai.infrastructure.completions.OpenAICompletionsClient;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -11,26 +11,26 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 import reactor.core.publisher.Mono;
 
 @Service
-public class DavinciSingletonService implements AISingletonService {
+public class DavinciSingletonService implements AiSingletonService {
 
   private static final Logger log = LogManager.getLogger(DavinciSingletonService.class);
 
   private final CompletionUtility completionUtility;
   private final OpenAICompletionsClient completionsClient;
-  private final ConversationSerializer conversationSerializer;
+  private final CompletionConversationSerializer completionConversationSerializer;
 
 
   public DavinciSingletonService(final OpenAICompletionsClient completionsClient,
-      final ConversationSerializer conversationSerializer,
+      final CompletionConversationSerializer completionConversationSerializer,
       final CompletionUtility completionUtility) {
     this.completionsClient = completionsClient;
-    this.conversationSerializer = conversationSerializer;
+    this.completionConversationSerializer = completionConversationSerializer;
     this.completionUtility = completionUtility;
   }
 
   @Override
   public Mono<ExpressionValue> exchange(final ConversationEntity conversationEntity) {
-    final String content = conversationSerializer.serializeConversation(conversationEntity);
+    final String content = completionConversationSerializer.serializeConversation(conversationEntity);
     return completionsClient.singleton().complete(content)
         .doOnError(throwable -> onError(throwable, content))
         .map(response -> {

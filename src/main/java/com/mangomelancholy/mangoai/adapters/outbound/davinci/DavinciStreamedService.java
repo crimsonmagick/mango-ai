@@ -2,36 +2,31 @@ package com.mangomelancholy.mangoai.adapters.outbound.davinci;
 
 import com.mangomelancholy.mangoai.application.conversation.ConversationEntity;
 import com.mangomelancholy.mangoai.application.conversation.ExpressionFragment;
-import com.mangomelancholy.mangoai.application.conversation.ports.secondary.AIStreamedService;
+import com.mangomelancholy.mangoai.application.conversation.ports.secondary.AiStreamedService;
 import com.mangomelancholy.mangoai.infrastructure.completions.OpenAICompletionsClient;
 import java.util.concurrent.atomic.AtomicBoolean;
+import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+@RequiredArgsConstructor
 @Service
-public class DavinciStreamedStreamedService implements AIStreamedService {
+public class DavinciStreamedService implements AiStreamedService {
 
-  private static final Logger log = LogManager.getLogger(DavinciStreamedStreamedService.class);
+  private static final Logger log = LogManager.getLogger(DavinciStreamedService.class);
   private final CompletionUtility completionUtility;
   private final OpenAICompletionsClient completionsClient;
-  private final ConversationSerializer conversationSerializer;
-
-  public DavinciStreamedStreamedService(final OpenAICompletionsClient completionsClient,
-      final ConversationSerializer conversationSerializer, final CompletionUtility completionUtility) {
-    this.completionsClient = completionsClient;
-    this.conversationSerializer = conversationSerializer;
-    this.completionUtility = completionUtility;
-  }
+  private final CompletionConversationSerializer completionConversationSerializer;
 
   @Override
   public Flux<ExpressionFragment> exchange(final ConversationEntity conversationEntity) {
     final StringBuilder sb = new StringBuilder();
     final AtomicBoolean attributionRemoved = new AtomicBoolean(false);
     return completionsClient.streamed()
-        .complete(conversationSerializer.serializeConversation(conversationEntity))
+        .complete(completionConversationSerializer.serializeConversation(conversationEntity))
         .handle((textCompletion, sink) -> {
           final String contentFragment = completionUtility.extractChoiceText(textCompletion);
           if (attributionRemoved.get()) {

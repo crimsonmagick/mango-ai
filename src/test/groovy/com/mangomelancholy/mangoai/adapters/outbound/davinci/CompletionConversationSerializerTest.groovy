@@ -6,13 +6,13 @@ import spock.lang.Specification
 
 import static com.mangomelancholy.mangoai.application.conversation.ExpressionValue.ActorType.*
 
-class ConversationSerializerTest extends Specification {
+class CompletionConversationSerializerTest extends Specification {
 
-    ConversationSerializer underTest
+    CompletionConversationSerializer underTest
     def mockedExpressionSerializer = Mock(CompletionExpressionSerializer)
 
     def setup() {
-        underTest = new ConversationSerializer(mockedExpressionSerializer)
+        underTest = new CompletionConversationSerializer(mockedExpressionSerializer)
     }
 
     def "ParseConversation - expressions should be separated by a newline"() {

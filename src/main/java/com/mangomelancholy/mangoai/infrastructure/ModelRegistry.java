@@ -13,13 +13,23 @@ public class ModelRegistry {
 
   private static final int MAX_INPUT_TOKENS = 3000;
   private static final int MAX_TOKENS = 4097;
-  @Value("${seeds.davinci.conversation}")
-  private final String davinciSeed;
   @Value("${seeds.chat.gpt.conversation}")
   private final String chatGptSeed;
+  @Value("${seeds.davinci.conversation}")
+  private final String davinciSeed;
 
 
-  public enum ModelType {CHAT_GPT, DAVINCI}
+  public enum ModelType {
+    CHAT_GPT, DAVINCI;
+
+    public static ModelType fromString(final String modelName) {
+      if (modelName.startsWith("gpt")) {
+        return CHAT_GPT;
+      } else {
+        return DAVINCI;
+      }
+    }
+  }
 
   public String getInitialPrompt(final ModelType model) {
     if (model == DAVINCI) {

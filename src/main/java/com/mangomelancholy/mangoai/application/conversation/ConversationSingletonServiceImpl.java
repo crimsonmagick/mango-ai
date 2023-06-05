@@ -6,7 +6,7 @@ import com.mangomelancholy.mangoai.application.AiServiceResolver;
 import com.mangomelancholy.mangoai.application.conversation.ExpressionValue.ActorType;
 import com.mangomelancholy.mangoai.application.conversation.ports.primary.ConversationNotFound;
 import com.mangomelancholy.mangoai.application.conversation.ports.primary.ConversationSingletonService;
-import com.mangomelancholy.mangoai.application.conversation.ports.secondary.AISingletonService;
+import com.mangomelancholy.mangoai.application.conversation.ports.secondary.AiSingletonService;
 import com.mangomelancholy.mangoai.application.conversation.ports.secondary.ConversationRepository;
 import com.mangomelancholy.mangoai.application.conversation.ports.secondary.MemoryService;
 import com.mangomelancholy.mangoai.infrastructure.ModelRegistry;
@@ -28,21 +28,13 @@ public class ConversationSingletonServiceImpl implements ConversationSingletonSe
   private final ModelRegistry modelRegistry;
 
   @Override
-  public Mono<List<ExpressionValue>> getExpressions(final String conversationId) {
-    return conversationRepository.getExpressions(conversationId)
-        .switchIfEmpty(Mono.error(new ConversationNotFound(conversationId)))
-        .map(ExpressionValue::fromRecord)
-        .collect(Collectors.toList());
-  }
-
-  @Override
   public Mono<List<String>> getConversationIds() {
     return conversationRepository.getConversationIds().collect(Collectors.toList());
   }
 
   @Override
-  public Mono<ConversationEntity> startConversation(final String messageContent) {
-    final AISingletonService aiSingletonService = aiServiceResolver.resolveSingletonService("gpt3");
+  public Mono<ConversationEntity> startConversation(final String messageContent, String model) {
+    final AiSingletonService aiSingletonService = aiServiceResolver.resolveSingletonService(model);
     final ExpressionValue conversationSeed = new ExpressionValue(
         modelRegistry.getInitialPrompt(ModelType.CHAT_GPT), ActorType.INITIAL_PROMPT);
     final ExpressionValue userGreeting = new ExpressionValue(messageContent, USER);
@@ -59,14 +51,14 @@ public class ConversationSingletonServiceImpl implements ConversationSingletonSe
   }
 
   @Override
-  public Mono<ExpressionValue> sendExpression(final String conversationId, final String messageContent) {
-    final AISingletonService aiSingletonService = aiServiceResolver.resolveSingletonService("gpt3");
+  public Mono<ExpressionValue> sendExpression(final String conversationId, final String messageContent, final String model) {
+    final AiSingletonService aiSingletonService = aiServiceResolver.resolveSingletonService("gpt3");
     return conversationRepository.getConversation(conversationId)
         .switchIfEmpty(Mono.error(new ConversationNotFound(conversationId)))
         .flatMap(conversationRecord -> {
           final ConversationEntity fullConversation = ConversationEntity.fromRecord(conversationRecord)
               .addExpression(new ExpressionValue(messageContent, USER));
-          final ConversationEntity rememberedConversation = memoryService.rememberConversation(fullConversation);
+          final ConversationEntity rememberedConversation = memoryService.rememberConversation(fullConversation, model);
           return aiSingletonService.exchange(rememberedConversation)
               .flatMap(responseExpression -> {
                 final ConversationEntity updatedConversation = fullConversation.addExpression(
@@ -77,5 +69,13 @@ public class ConversationSingletonServiceImpl implements ConversationSingletonSe
         })
         .map(conversationRecord -> ConversationEntity.fromRecord(conversationRecord)
             .getLastExpression());
+  }
+
+  @Override
+  public Mono<List<ExpressionValue>> getExpressions(final String conversationId) {
+    return conversationRepository.getExpressions(conversationId)
+        .switchIfEmpty(Mono.error(new ConversationNotFound(conversationId)))
+        .map(ExpressionValue::fromRecord)
+        .collect(Collectors.toList());
   }
 }

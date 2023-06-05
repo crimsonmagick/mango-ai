@@ -5,11 +5,11 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
 
 @Component
-public class ConversationSerializer {
+public class CompletionConversationSerializer {
 
   private final CompletionExpressionSerializer completionExpressionSerializer;
 
-  public ConversationSerializer(final CompletionExpressionSerializer completionExpressionSerializer) {
+  public CompletionConversationSerializer(final CompletionExpressionSerializer completionExpressionSerializer) {
     this.completionExpressionSerializer = completionExpressionSerializer;
   }
 

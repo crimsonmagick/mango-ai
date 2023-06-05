@@ -31,30 +31,32 @@ public class ConversationSingletonController {
   @GetMapping("/singleton/conversations/{id}/expressions")
   public Mono<List<ExpressionJson>> getExpressions(@PathVariable String id) {
     return conversationSingletonService.getExpressions(id).map(values -> values.stream()
-        .map(value -> new ExpressionJson(null, value.content(), value.actor().toString()))
+        .map(value -> new ExpressionJson(null, value.content(), value.actor().toString(), null))
         .collect(Collectors.toList())
     );
   }
 
   @PostMapping("/singleton/conversations/{id}/expressions")
   public Mono<ExpressionJson> sendExpression(@PathVariable String id, @RequestBody ExpressionJson expressionJson) {
-    return conversationSingletonService.sendExpression(id, expressionJson.content())
-        .map(expressionValue -> new ExpressionJson(id, expressionValue.content(), expressionValue.actor().toString()))
-        .doOnError(throwable -> {
-          log.error("Error processing request.", throwable);
-        });
+    final String model = expressionJson.model() == null ? "gpt3" : expressionJson.model();
+    return conversationSingletonService.sendExpression(id, expressionJson.content(), model)
+        .map(expressionValue -> new ExpressionJson(id, expressionValue.content(), expressionValue.actor().toString(), model))
+        .doOnError(ConversationSingletonController::error);
   }
 
   @PostMapping("/singleton/conversations")
-  public Mono<ExpressionJson> startConversation(@RequestBody ExpressionJson message) {
-    return conversationSingletonService.startConversation(message.content())
+  public Mono<ExpressionJson> startConversation(@RequestBody ExpressionJson expressionJson) {
+    final String model = expressionJson.model() == null ? "gpt3" : expressionJson.model();
+    return conversationSingletonService.startConversation(expressionJson.content(), model)
         .map(conversation -> {
           final ExpressionValue lastExpression = conversation.getLastExpression();
           return new ExpressionJson(conversation.getConversationId(), lastExpression.content(),
-              lastExpression.actor().toString());
+              lastExpression.actor().toString(), model);
         })
-        .doOnError(throwable -> {
-          log.error("Error processing request.", throwable);
-        });
+        .doOnError(ConversationSingletonController::error);
+  }
+
+  private static void error(final Throwable throwable) {
+    log.error("Error processing request.", throwable);
   }
 }
