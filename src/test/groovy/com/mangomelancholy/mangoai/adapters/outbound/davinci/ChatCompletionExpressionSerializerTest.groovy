@@ -5,17 +5,17 @@ import spock.lang.Specification
 
 import static com.mangomelancholy.mangoai.application.conversation.ExpressionValue.ActorType.*
 
-class ExpressionSerializerTest extends Specification {
+class ChatCompletionExpressionSerializerTest extends Specification {
 
     def underTest
 
     def setup() {
-        underTest = new ExpressionSerializer()
+        underTest = new CompletionExpressionSerializer()
     }
 
     def "serializeExpression - serialized expressions should be properly prefixed"() {
         when:
-        def serializedText = underTest.serializeExpression(new ExpressionValue(content, actor))
+        def serializedText = underTest.mapExpression(new ExpressionValue(content, actor))
 
         then:
         serializedText == expected

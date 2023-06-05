@@ -2,8 +2,8 @@ package com.mangomelancholy.mangoai.adapters.outbound.davinci;
 
 import com.mangomelancholy.mangoai.application.conversation.ConversationEntity;
 import com.mangomelancholy.mangoai.application.conversation.ExpressionValue;
-import com.mangomelancholy.mangoai.application.ports.secondary.AISingletonService;
-import com.mangomelancholy.mangoai.infrastructure.OpenAICompletionsClient;
+import com.mangomelancholy.mangoai.application.conversation.ports.secondary.AISingletonService;
+import com.mangomelancholy.mangoai.infrastructure.completions.OpenAICompletionsClient;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
@@ -14,6 +14,7 @@ import reactor.core.publisher.Mono;
 public class DavinciSingletonService implements AISingletonService {
 
   private static final Logger log = LogManager.getLogger(DavinciSingletonService.class);
+
   private final CompletionUtility completionUtility;
   private final OpenAICompletionsClient completionsClient;
   private final ConversationSerializer conversationSerializer;

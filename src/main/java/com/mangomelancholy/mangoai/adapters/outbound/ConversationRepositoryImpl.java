@@ -1,8 +1,8 @@
 package com.mangomelancholy.mangoai.adapters.outbound;
 
-import com.mangomelancholy.mangoai.application.ports.secondary.ConversationRecord;
-import com.mangomelancholy.mangoai.application.ports.secondary.ConversationRepository;
-import com.mangomelancholy.mangoai.application.ports.secondary.ExpressionRecord;
+import com.mangomelancholy.mangoai.application.conversation.ports.secondary.ConversationRecord;
+import com.mangomelancholy.mangoai.application.conversation.ports.secondary.ConversationRepository;
+import com.mangomelancholy.mangoai.application.conversation.ports.secondary.ExpressionRecord;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;

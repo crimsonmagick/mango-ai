@@ -2,8 +2,8 @@ package com.mangomelancholy.mangoai.adapters.outbound.davinci;
 
 import com.mangomelancholy.mangoai.application.conversation.ConversationEntity;
 import com.mangomelancholy.mangoai.application.conversation.ExpressionFragment;
-import com.mangomelancholy.mangoai.application.ports.secondary.AIStreamedService;
-import com.mangomelancholy.mangoai.infrastructure.OpenAICompletionsClient;
+import com.mangomelancholy.mangoai.application.conversation.ports.secondary.AIStreamedService;
+import com.mangomelancholy.mangoai.infrastructure.completions.OpenAICompletionsClient;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

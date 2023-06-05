@@ -5,7 +5,7 @@ import com.mangomelancholy.mangoai.application.conversation.ExpressionValue.Acto
 import org.springframework.stereotype.Component;
 
 @Component
-public class ExpressionSerializer {
+public class CompletionExpressionSerializer {
 
   /**
    * Serializes an Expression in a format that can be used with the completions OpenAI endpoint.

@@ -5,10 +5,10 @@ import static com.mangomelancholy.mangoai.application.conversation.ExpressionVal
 
 import com.mangomelancholy.mangoai.adapters.outbound.davinci.DavinciStreamedStreamedService;
 import com.mangomelancholy.mangoai.application.conversation.ExpressionValue.ActorType;
-import com.mangomelancholy.mangoai.application.ports.primary.ConversationNotFound;
-import com.mangomelancholy.mangoai.application.ports.primary.ConversationStreamedService;
-import com.mangomelancholy.mangoai.application.ports.secondary.ConversationRepository;
-import com.mangomelancholy.mangoai.application.ports.secondary.MemoryService;
+import com.mangomelancholy.mangoai.application.conversation.ports.primary.ConversationNotFound;
+import com.mangomelancholy.mangoai.application.conversation.ports.primary.ConversationStreamedService;
+import com.mangomelancholy.mangoai.application.conversation.ports.secondary.ConversationRepository;
+import com.mangomelancholy.mangoai.application.conversation.ports.secondary.MemoryService;
 import com.mangomelancholy.mangoai.infrastructure.ModelRegistry;
 import com.mangomelancholy.mangoai.infrastructure.ModelRegistry.ModelType;
 import java.util.stream.Collectors;

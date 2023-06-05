@@ -1,4 +1,4 @@
-package com.mangomelancholy.mangoai.application.ports.primary;
+package com.mangomelancholy.mangoai.application.conversation.ports.primary;
 
 import com.mangomelancholy.mangoai.application.conversation.ConversationEntity;
 import com.mangomelancholy.mangoai.application.conversation.ExpressionValue;

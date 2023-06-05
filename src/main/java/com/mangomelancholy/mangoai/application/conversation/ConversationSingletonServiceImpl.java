@@ -2,30 +2,29 @@ package com.mangomelancholy.mangoai.application.conversation;
 
 import static com.mangomelancholy.mangoai.application.conversation.ExpressionValue.ActorType.USER;
 
-import com.mangomelancholy.mangoai.adapters.outbound.davinci.DavinciSingletonService;
+import com.mangomelancholy.mangoai.application.AiServiceResolver;
 import com.mangomelancholy.mangoai.application.conversation.ExpressionValue.ActorType;
-import com.mangomelancholy.mangoai.application.ports.primary.ConversationNotFound;
-import com.mangomelancholy.mangoai.application.ports.primary.ConversationSingletonService;
-import com.mangomelancholy.mangoai.application.ports.secondary.ConversationRepository;
-import com.mangomelancholy.mangoai.application.ports.secondary.MemoryService;
+import com.mangomelancholy.mangoai.application.conversation.ports.primary.ConversationNotFound;
+import com.mangomelancholy.mangoai.application.conversation.ports.primary.ConversationSingletonService;
+import com.mangomelancholy.mangoai.application.conversation.ports.secondary.AISingletonService;
+import com.mangomelancholy.mangoai.application.conversation.ports.secondary.ConversationRepository;
+import com.mangomelancholy.mangoai.application.conversation.ports.secondary.MemoryService;
 import com.mangomelancholy.mangoai.infrastructure.ModelRegistry;
 import com.mangomelancholy.mangoai.infrastructure.ModelRegistry.ModelType;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
 
 @RequiredArgsConstructor
 @Service
-public class ConversationSingletonSingletonServiceImpl implements ConversationSingletonService {
+public class ConversationSingletonServiceImpl implements ConversationSingletonService {
 
+  private final AiServiceResolver aiServiceResolver;
   private final ConversationRepository conversationRepository;
-  private final DavinciSingletonService davinciSingletonService;
   private final MemoryService memoryService;
-
   private final ModelRegistry modelRegistry;
 
   @Override
@@ -43,8 +42,9 @@ public class ConversationSingletonSingletonServiceImpl implements ConversationSi
 
   @Override
   public Mono<ConversationEntity> startConversation(final String messageContent) {
+    final AISingletonService aiSingletonService = aiServiceResolver.resolveSingletonService("gpt3");
     final ExpressionValue conversationSeed = new ExpressionValue(
-        modelRegistry.getInitialPrompt(ModelType.DAVINCI), ActorType.INITIAL_PROMPT);
+        modelRegistry.getInitialPrompt(ModelType.CHAT_GPT), ActorType.INITIAL_PROMPT);
     final ExpressionValue userGreeting = new ExpressionValue(messageContent, USER);
     final ConversationEntity startOfConversation = new ConversationEntity(conversationSeed,
         userGreeting);
@@ -52,22 +52,22 @@ public class ConversationSingletonSingletonServiceImpl implements ConversationSi
             startOfConversation.toRecord())
         .flatMap(conversationRecord -> {
           final ConversationEntity savedConversation = ConversationEntity.fromRecord(conversationRecord);
-          return davinciSingletonService.exchange(savedConversation)
+          return aiSingletonService.exchange(savedConversation)
               .map(savedConversation::addExpression)
               .doOnNext(conversation -> conversationRepository.update(conversation.toRecord()));
         });
   }
 
   @Override
-  public Mono<ExpressionValue> sendExpression(final String conversationId,
-      final String messageContent) {
+  public Mono<ExpressionValue> sendExpression(final String conversationId, final String messageContent) {
+    final AISingletonService aiSingletonService = aiServiceResolver.resolveSingletonService("gpt3");
     return conversationRepository.getConversation(conversationId)
         .switchIfEmpty(Mono.error(new ConversationNotFound(conversationId)))
         .flatMap(conversationRecord -> {
           final ConversationEntity fullConversation = ConversationEntity.fromRecord(conversationRecord)
               .addExpression(new ExpressionValue(messageContent, USER));
           final ConversationEntity rememberedConversation = memoryService.rememberConversation(fullConversation);
-          return davinciSingletonService.exchange(rememberedConversation)
+          return aiSingletonService.exchange(rememberedConversation)
               .flatMap(responseExpression -> {
                 final ConversationEntity updatedConversation = fullConversation.addExpression(
                     responseExpression);

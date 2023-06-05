@@ -7,15 +7,15 @@ import org.springframework.stereotype.Component;
 @Component
 public class ConversationSerializer {
 
-  private final ExpressionSerializer expressionSerializer;
+  private final CompletionExpressionSerializer completionExpressionSerializer;
 
-  public ConversationSerializer(final ExpressionSerializer expressionSerializer) {
-    this.expressionSerializer = expressionSerializer;
+  public ConversationSerializer(final CompletionExpressionSerializer completionExpressionSerializer) {
+    this.completionExpressionSerializer = completionExpressionSerializer;
   }
 
   public String serializeConversation(final ConversationEntity conversation) {
     return conversation.getExpressions().stream()
-        .map(expressionSerializer::serializeExpression)
+        .map(completionExpressionSerializer::serializeExpression)
         .collect(Collectors.joining());
   }
 

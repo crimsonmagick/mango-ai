@@ -1,6 +1,6 @@
 package com.mangomelancholy.mangoai.adapters.inbound;
 
-import com.mangomelancholy.mangoai.application.conversation.ConversationSingletonSingletonServiceImpl;
+import com.mangomelancholy.mangoai.application.conversation.ConversationSingletonServiceImpl;
 import com.mangomelancholy.mangoai.application.conversation.ExpressionValue;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -17,9 +17,9 @@ import reactor.core.publisher.Mono;
 public class ConversationSingletonController {
 
   private static final Logger log = LogManager.getLogger(ConversationSingletonController.class);
-  private final ConversationSingletonSingletonServiceImpl conversationSingletonService;
+  private final ConversationSingletonServiceImpl conversationSingletonService;
 
-  public ConversationSingletonController(final ConversationSingletonSingletonServiceImpl conversationSingletonService) {
+  public ConversationSingletonController(final ConversationSingletonServiceImpl conversationSingletonService) {
     this.conversationSingletonService = conversationSingletonService;
   }
 

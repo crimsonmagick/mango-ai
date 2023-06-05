@@ -1,4 +1,4 @@
-package com.mangomelancholy.mangoai.infrastructure;
+package com.mangomelancholy.mangoai.infrastructure.completions;
 
 import java.util.List;
 

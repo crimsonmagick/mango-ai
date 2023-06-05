@@ -2,7 +2,7 @@ package com.mangomelancholy.mangoai.adapters.inbound;
 
 
 import com.mangomelancholy.mangoai.adapters.inbound.exceptions.AiWebError;
-import com.mangomelancholy.mangoai.application.ports.primary.ConversationNotFound;
+import com.mangomelancholy.mangoai.application.conversation.ports.primary.ConversationNotFound;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ProblemDetail;

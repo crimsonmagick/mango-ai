@@ -2,7 +2,7 @@ package com.mangomelancholy.mangoai.adapters.outbound.davinci;
 
 import com.mangomelancholy.mangoai.application.conversation.ExpressionValue;
 import com.mangomelancholy.mangoai.application.conversation.ExpressionValue.ActorType;
-import com.mangomelancholy.mangoai.infrastructure.TextCompletion;
+import com.mangomelancholy.mangoai.infrastructure.completions.TextCompletion;
 import org.springframework.stereotype.Component;
 
 @Component

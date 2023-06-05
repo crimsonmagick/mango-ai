@@ -1,4 +1,4 @@
-package com.mangomelancholy.mangoai.application.ports.primary;
+package com.mangomelancholy.mangoai.application.conversation.ports.primary;
 
 public class ConversationNotFound extends RuntimeException {
 

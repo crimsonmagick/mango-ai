@@ -4,11 +4,11 @@ import com.knuddels.jtokkit.Encodings;
 import com.knuddels.jtokkit.api.Encoding;
 import com.knuddels.jtokkit.api.EncodingRegistry;
 import com.knuddels.jtokkit.api.EncodingType;
-import com.mangomelancholy.mangoai.adapters.outbound.davinci.ExpressionSerializer;
+import com.mangomelancholy.mangoai.adapters.outbound.davinci.CompletionExpressionSerializer;
 import com.mangomelancholy.mangoai.application.conversation.ConversationEntity;
 import com.mangomelancholy.mangoai.application.conversation.ExpressionValue;
 import com.mangomelancholy.mangoai.application.conversation.ExpressionValue.ActorType;
-import com.mangomelancholy.mangoai.application.ports.secondary.MemoryService;
+import com.mangomelancholy.mangoai.application.conversation.ports.secondary.MemoryService;
 import com.mangomelancholy.mangoai.infrastructure.ModelRegistry;
 import com.mangomelancholy.mangoai.infrastructure.ModelRegistry.ModelType;
 import java.util.ArrayList;
@@ -21,14 +21,14 @@ import reactor.util.function.Tuples;
 public class WindowedMemoryService implements MemoryService {
 
 
-  private final ExpressionSerializer expressionSerializer;
+  private final CompletionExpressionSerializer completionExpressionSerializer;
   private final ModelRegistry modelRegistry;
   private final EncodingRegistry registry;
 
-  WindowedMemoryService(final ModelRegistry modelRegistry, final ExpressionSerializer expressionSerializer) {
+  WindowedMemoryService(final ModelRegistry modelRegistry, final CompletionExpressionSerializer completionExpressionSerializer) {
     this.modelRegistry = modelRegistry;
     this.registry = Encodings.newDefaultEncodingRegistry();
-    this.expressionSerializer = expressionSerializer;
+    this.completionExpressionSerializer = completionExpressionSerializer;
   }
 
 
@@ -38,7 +38,7 @@ public class WindowedMemoryService implements MemoryService {
     final Encoding encoding = registry.getEncoding(EncodingType.R50K_BASE);
     final List<Tuple2<Long, ExpressionValue>> tokenPairs = conversation.getExpressions().stream()
         .map(value -> {
-          final String serialized = expressionSerializer.serializeExpression(value);
+          final String serialized = completionExpressionSerializer.serializeExpression(value);
           final long tokenCount = encoding.encode(serialized)
               .size();
           return Tuples.of(tokenCount, value);

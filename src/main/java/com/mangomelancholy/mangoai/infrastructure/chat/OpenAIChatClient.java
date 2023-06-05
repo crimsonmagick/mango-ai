@@ -1,8 +1,11 @@
-package com.mangomelancholy.mangoai.infrastructure;
+package com.mangomelancholy.mangoai.infrastructure.chat;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mangomelancholy.mangoai.infrastructure.ModelRegistry;
 import com.mangomelancholy.mangoai.infrastructure.ModelRegistry.ModelType;
+import com.mangomelancholy.mangoai.infrastructure.chat.ChatResponse.ChatMessage;
+import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.reactivestreams.Publisher;
@@ -17,20 +20,20 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Component
-public class OpenAICompletionsClient {
+public class OpenAIChatClient {
 
-  public interface Delegation<T extends Publisher<TextCompletion>> {
+  public interface Delegation<T extends Publisher<ChatResponse>> {
 
-    T complete(String prompt);
+    T complete(List<ChatMessage> chatMessages);
   }
 
-  private static final Logger log = LogManager.getLogger(OpenAICompletionsClient.class);
+  private static final Logger log = LogManager.getLogger(OpenAIChatClient.class);
   private final String apiKey;
   private final ModelRegistry modelRegistry;
   private final ObjectMapper objectMapper;
   private final WebClient webClient;
 
-  public OpenAICompletionsClient(@Value("${pal.secrets.authkey}") final String apiKey,
+  public OpenAIChatClient(@Value("${pal.secrets.authkey}") final String apiKey,
       final ObjectMapper objectMapper, final ModelRegistry modelRegistry) {
     this.apiKey = apiKey;
     this.objectMapper = objectMapper;
@@ -39,32 +42,32 @@ public class OpenAICompletionsClient {
   }
 
 
-  public class SingletonDelegation implements Delegation<Mono<TextCompletion>> {
+  public class SingletonDelegation implements Delegation<Mono<ChatResponse>> {
 
-    public Mono<TextCompletion> complete(final String prompt) {
-      final OpenAiCompletionsParams params = OpenAiCompletionsParams.builder()
+    public Mono<ChatResponse> complete(final List<ChatMessage> prompt) {
+      final OpenAiChatParams params = OpenAiChatParams.builder()
           .stream(false)
-          .maxTokens(modelRegistry.getMaxResponseTokens(ModelType.DAVINCI))
+          .max_tokens(modelRegistry.getMaxResponseTokens(ModelType.CHAT_GPT))
           .build();
-      return OpenAICompletionsClient.this.complete(prompt, params)
-          .bodyToMono(TextCompletion.class);
+      return OpenAIChatClient.this.complete(prompt, params)
+          .bodyToMono(ChatResponse.class);
     }
   }
 
-  public class StreamedDelegation implements Delegation<Flux<TextCompletion>> {
+  public class StreamedDelegation implements Delegation<Flux<ChatResponse>> {
 
-    public Flux<TextCompletion> complete(final String prompt) {
-      final OpenAiCompletionsParams params = OpenAiCompletionsParams.builder()
+    public Flux<ChatResponse> complete(final List<ChatMessage> prompt) {
+      final OpenAiChatParams params = OpenAiChatParams.builder()
           .stream(true)
-          .maxTokens(modelRegistry.getMaxResponseTokens(ModelType.DAVINCI))
+          .max_tokens(modelRegistry.getMaxResponseTokens(ModelType.CHAT_GPT))
           .build();
-      return OpenAICompletionsClient.this.complete(prompt, params)
+      return OpenAIChatClient.this.complete(prompt, params)
           .bodyToFlux(new ParameterizedTypeReference<ServerSentEvent<String>>() {
           })
           .filter(event -> !"[DONE]".equals(event.data()))
           .map(event -> {
             try {
-              return objectMapper.readValue(event.data(), TextCompletion.class);
+              return objectMapper.readValue(event.data(), ChatResponse.class);
             } catch (final JsonProcessingException e) {
               throw new RuntimeException(
                   String.format("Unable to parse data value. data=%s", event.data()), e);
@@ -83,20 +86,20 @@ public class OpenAICompletionsClient {
     return new StreamedDelegation();
   }
 
-  private ResponseSpec complete(final String prompt, OpenAiCompletionsParams params) {
-    final OpenAIRequest request = new OpenAIRequest.Builder()
-        .model(params.model() == null ? "text-davinci-003" : params.model())
-        .prompt(prompt)
-        .temperature(params.temperature() == null ? 0.9 : params.temperature())
-        .maxTokens(params.maxTokens() == null ? 300 : params.maxTokens())
-        .topP(params.topP() == null ? 0.3 : params.topP())
-        .frequencyPenalty(params.frequencyPenalty() == null ? 0.5 : params.frequencyPenalty())
-        .presencePenalty(0)
+  private ResponseSpec complete(final List<ChatMessage> chatMessages, OpenAiChatParams params) {
+    final OpenAiChatParams request = OpenAiChatParams.builder()
+        .model(params.model() == null ? "gpt-3.5-turbo" : params.model())
+        .messages(chatMessages)
+        .temperature(params.temperature() == null ? 1.0 : params.temperature())
+        .max_tokens(params.max_tokens() == null ? 300 : params.max_tokens())
+        .top_p(params.top_p() == null ? 1.0 : params.top_p())
+        .frequency_penalty(params.frequency_penalty() == null ? 0.5 : params.frequency_penalty())
+        .presence_penalty(0D)
         .stream(params.stream() != null && params.stream())
         .build();
 
     return webClient.post()
-        .uri("completions")
+        .uri("chat/completions")
         .header("Content-Type", "application/json")
         .header("Authorization", "Bearer " + apiKey)
         .body(BodyInserters.fromValue(request))

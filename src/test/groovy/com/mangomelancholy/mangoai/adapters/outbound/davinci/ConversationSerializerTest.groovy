@@ -9,7 +9,7 @@ import static com.mangomelancholy.mangoai.application.conversation.ExpressionVal
 class ConversationSerializerTest extends Specification {
 
     ConversationSerializer underTest
-    def mockedExpressionSerializer = Mock(ExpressionSerializer)
+    def mockedExpressionSerializer = Mock(CompletionExpressionSerializer)
 
     def setup() {
         underTest = new ConversationSerializer(mockedExpressionSerializer)

@@ -1,4 +1,4 @@
-package com.mangomelancholy.mangoai.application.ports.secondary;
+package com.mangomelancholy.mangoai.application.conversation.ports.secondary;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;

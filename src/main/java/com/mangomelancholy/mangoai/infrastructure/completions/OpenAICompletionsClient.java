@@ -1,0 +1,107 @@
+package com.mangomelancholy.mangoai.infrastructure.completions;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mangomelancholy.mangoai.infrastructure.ModelRegistry;
+import com.mangomelancholy.mangoai.infrastructure.ModelRegistry.ModelType;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.reactivestreams.Publisher;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.codec.ServerSentEvent;
+import org.springframework.stereotype.Component;
+import org.springframework.web.reactive.function.BodyInserters;
+import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClient.ResponseSpec;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+
+@Component
+public class OpenAICompletionsClient {
+
+  public interface Delegation<T extends Publisher<TextCompletion>> {
+
+    T complete(String prompt);
+  }
+
+  private static final Logger log = LogManager.getLogger(OpenAICompletionsClient.class);
+  private final String apiKey;
+  private final ModelRegistry modelRegistry;
+  private final ObjectMapper objectMapper;
+  private final WebClient webClient;
+
+  public OpenAICompletionsClient(@Value("${pal.secrets.authkey}") final String apiKey,
+      final ObjectMapper objectMapper, final ModelRegistry modelRegistry) {
+    this.apiKey = apiKey;
+    this.objectMapper = objectMapper;
+    this.webClient = WebClient.create("https://api.openai.com/v1/");
+    this.modelRegistry = modelRegistry;
+  }
+
+
+  public class SingletonDelegation implements Delegation<Mono<TextCompletion>> {
+
+    public Mono<TextCompletion> complete(final String prompt) {
+      final OpenAiCompletionParams params = OpenAiCompletionParams.builder()
+          .stream(false)
+          .maxTokens(modelRegistry.getMaxResponseTokens(ModelType.DAVINCI))
+          .build();
+      return OpenAICompletionsClient.this.complete(prompt, params)
+          .bodyToMono(TextCompletion.class);
+    }
+  }
+
+  public class StreamedDelegation implements Delegation<Flux<TextCompletion>> {
+
+    public Flux<TextCompletion> complete(final String prompt) {
+      final OpenAiCompletionParams params = OpenAiCompletionParams.builder()
+          .stream(true)
+          .maxTokens(modelRegistry.getMaxResponseTokens(ModelType.DAVINCI))
+          .build();
+      return OpenAICompletionsClient.this.complete(prompt, params)
+          .bodyToFlux(new ParameterizedTypeReference<ServerSentEvent<String>>() {
+          })
+          .filter(event -> !"[DONE]".equals(event.data()))
+          .map(event -> {
+            try {
+              return objectMapper.readValue(event.data(), TextCompletion.class);
+            } catch (final JsonProcessingException e) {
+              throw new RuntimeException(
+                  String.format("Unable to parse data value. data=%s", event.data()), e);
+            }
+          })
+          .onErrorContinue(
+              (throwable, event) -> log.warn("Error processing event. event={}", event, throwable));
+    }
+  }
+
+  public SingletonDelegation singleton() {
+    return new SingletonDelegation();
+  }
+
+  public StreamedDelegation streamed() {
+    return new StreamedDelegation();
+  }
+
+  private ResponseSpec complete(final String prompt, OpenAiCompletionParams params) {
+    final OpenAiCompletionParams request = OpenAiCompletionParams.builder()
+        .model(params.model() == null ? "text-davinci-003" : params.model())
+        .prompt(prompt)
+        .temperature(params.temperature() == null ? 0.9 : params.temperature())
+        .maxTokens(params.maxTokens() == null ? 300 : params.maxTokens())
+        .topP(params.topP() == null ? 0.3 : params.topP())
+        .frequencyPenalty(params.frequencyPenalty() == null ? 0.5 : params.frequencyPenalty())
+        .presencePenalty(0D)
+        .stream(params.stream() != null && params.stream())
+        .build();
+
+    return webClient.post()
+        .uri("completions")
+        .header("Content-Type", "application/json")
+        .header("Authorization", "Bearer " + apiKey)
+        .body(BodyInserters.fromValue(request))
+        .retrieve();
+  }
+
+}
