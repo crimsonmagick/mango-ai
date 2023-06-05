@@ -4,12 +4,14 @@ import com.mangomelancholy.mangoai.application.conversation.ConversationEntity;
 import com.mangomelancholy.mangoai.application.conversation.ExpressionValue;
 import com.mangomelancholy.mangoai.application.conversation.ports.secondary.AiSingletonService;
 import com.mangomelancholy.mangoai.infrastructure.completions.OpenAICompletionsClient;
+import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 import reactor.core.publisher.Mono;
 
+@RequiredArgsConstructor
 @Service
 public class DavinciSingletonService implements AiSingletonService {
 
@@ -18,15 +20,6 @@ public class DavinciSingletonService implements AiSingletonService {
   private final CompletionUtility completionUtility;
   private final OpenAICompletionsClient completionsClient;
   private final CompletionConversationSerializer completionConversationSerializer;
-
-
-  public DavinciSingletonService(final OpenAICompletionsClient completionsClient,
-      final CompletionConversationSerializer completionConversationSerializer,
-      final CompletionUtility completionUtility) {
-    this.completionsClient = completionsClient;
-    this.completionConversationSerializer = completionConversationSerializer;
-    this.completionUtility = completionUtility;
-  }
 
   @Override
   public Mono<ExpressionValue> exchange(final ConversationEntity conversationEntity) {

@@ -45,7 +45,7 @@ public class OpenAICompletionsClient {
     public Mono<TextCompletion> complete(final String prompt) {
       final OpenAiCompletionParams params = OpenAiCompletionParams.builder()
           .stream(false)
-          .maxTokens(modelInfoService.getMaxResponseTokens(ModelType.DAVINCI))
+          .max_tokens(modelInfoService.getMaxResponseTokens(ModelType.DAVINCI))
           .build();
       return OpenAICompletionsClient.this.complete(prompt, params)
           .bodyToMono(TextCompletion.class);
@@ -57,7 +57,7 @@ public class OpenAICompletionsClient {
     public Flux<TextCompletion> complete(final String prompt) {
       final OpenAiCompletionParams params = OpenAiCompletionParams.builder()
           .stream(true)
-          .maxTokens(modelInfoService.getMaxResponseTokens(ModelType.DAVINCI))
+          .max_tokens(modelInfoService.getMaxResponseTokens(ModelType.DAVINCI))
           .build();
       return OpenAICompletionsClient.this.complete(prompt, params)
           .bodyToFlux(new ParameterizedTypeReference<ServerSentEvent<String>>() {
@@ -89,10 +89,10 @@ public class OpenAICompletionsClient {
         .model(params.model() == null ? "text-davinci-003" : params.model())
         .prompt(prompt)
         .temperature(params.temperature() == null ? 0.9 : params.temperature())
-        .maxTokens(params.maxTokens() == null ? 300 : params.maxTokens())
-        .topP(params.topP() == null ? 0.3 : params.topP())
-        .frequencyPenalty(params.frequencyPenalty() == null ? 0.5 : params.frequencyPenalty())
-        .presencePenalty(0D)
+        .max_tokens(params.max_tokens() == null ? 300 : params.max_tokens())
+        .top_p(params.top_p() == null ? 0.3 : params.top_p())
+        .frequency_penalty(params.frequency_penalty() == null ? 0.5 : params.frequency_penalty())
+        .presence_penalty(0D)
         .stream(params.stream() != null && params.stream())
         .build();
 
