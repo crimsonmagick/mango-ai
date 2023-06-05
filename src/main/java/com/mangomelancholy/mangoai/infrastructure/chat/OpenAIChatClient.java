@@ -2,8 +2,8 @@ package com.mangomelancholy.mangoai.infrastructure.chat;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mangomelancholy.mangoai.infrastructure.ModelRegistry;
-import com.mangomelancholy.mangoai.infrastructure.ModelRegistry.ModelType;
+import com.mangomelancholy.mangoai.infrastructure.ModelInfoService;
+import com.mangomelancholy.mangoai.infrastructure.ModelInfoService.ModelType;
 import com.mangomelancholy.mangoai.infrastructure.chat.ChatResponse.ChatMessage;
 import java.util.List;
 import org.apache.logging.log4j.LogManager;
@@ -29,16 +29,16 @@ public class OpenAIChatClient {
 
   private static final Logger log = LogManager.getLogger(OpenAIChatClient.class);
   private final String apiKey;
-  private final ModelRegistry modelRegistry;
+  private final ModelInfoService modelInfoService;
   private final ObjectMapper objectMapper;
   private final WebClient webClient;
 
   public OpenAIChatClient(@Value("${pal.secrets.authkey}") final String apiKey,
-      final ObjectMapper objectMapper, final ModelRegistry modelRegistry) {
+      final ObjectMapper objectMapper, final ModelInfoService modelInfoService) {
     this.apiKey = apiKey;
     this.objectMapper = objectMapper;
     this.webClient = WebClient.create("https://api.openai.com/v1/");
-    this.modelRegistry = modelRegistry;
+    this.modelInfoService = modelInfoService;
   }
 
 
@@ -47,7 +47,7 @@ public class OpenAIChatClient {
     public Mono<ChatResponse> complete(final List<ChatMessage> prompt) {
       final OpenAiChatParams params = OpenAiChatParams.builder()
           .stream(false)
-          .max_tokens(modelRegistry.getMaxResponseTokens(ModelType.CHAT_GPT))
+          .max_tokens(modelInfoService.getMaxResponseTokens(ModelType.CHAT_GPT))
           .build();
       return OpenAIChatClient.this.complete(prompt, params)
           .bodyToMono(ChatResponse.class);
@@ -59,7 +59,7 @@ public class OpenAIChatClient {
     public Flux<ChatResponse> complete(final List<ChatMessage> chatMessages) {
       final OpenAiChatParams params = OpenAiChatParams.builder()
           .stream(true)
-          .max_tokens(modelRegistry.getMaxResponseTokens(ModelType.CHAT_GPT))
+          .max_tokens(modelInfoService.getMaxResponseTokens(ModelType.CHAT_GPT))
           .build();
       return OpenAIChatClient.this.complete(chatMessages, params)
           .bodyToFlux(new ParameterizedTypeReference<ServerSentEvent<String>>() {

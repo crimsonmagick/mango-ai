@@ -10,8 +10,8 @@ import com.mangomelancholy.mangoai.application.conversation.ports.primary.Conver
 import com.mangomelancholy.mangoai.application.conversation.ports.secondary.AiStreamedService;
 import com.mangomelancholy.mangoai.application.conversation.ports.secondary.ConversationRepository;
 import com.mangomelancholy.mangoai.application.conversation.ports.secondary.MemoryService;
-import com.mangomelancholy.mangoai.infrastructure.ModelRegistry;
-import com.mangomelancholy.mangoai.infrastructure.ModelRegistry.ModelType;
+import com.mangomelancholy.mangoai.infrastructure.ModelInfoService;
+import com.mangomelancholy.mangoai.infrastructure.ModelInfoService.ModelType;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
@@ -29,13 +29,13 @@ public class ConversationStreamedServiceImpl implements ConversationStreamedServ
   private final AiServiceResolver aiServiceResolver;
   private final ConversationRepository conversationRepository;
   private final MemoryService memoryService;
-  private final ModelRegistry modelRegistry;
+  private final ModelInfoService modelInfoService;
 
   @Override
   public Flux<ExpressionFragment> startConversation(final String messageContent, final String model) {
     final AiStreamedService aiStreamedService = aiServiceResolver.resolveStreamedService(model);
     final ExpressionValue conversationSeed =
-        new ExpressionValue(modelRegistry.getInitialPrompt(ModelType.fromString(model)), ActorType.INITIAL_PROMPT);
+        new ExpressionValue(modelInfoService.getInitialPrompt(ModelType.fromString(model)), ActorType.INITIAL_PROMPT);
     final ExpressionValue userGreeting = new ExpressionValue(messageContent, USER);
     final ConversationEntity startOfConversation = new ConversationEntity(conversationSeed,
         userGreeting);

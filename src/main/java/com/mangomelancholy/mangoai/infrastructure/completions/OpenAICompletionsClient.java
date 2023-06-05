@@ -2,8 +2,8 @@ package com.mangomelancholy.mangoai.infrastructure.completions;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mangomelancholy.mangoai.infrastructure.ModelRegistry;
-import com.mangomelancholy.mangoai.infrastructure.ModelRegistry.ModelType;
+import com.mangomelancholy.mangoai.infrastructure.ModelInfoService;
+import com.mangomelancholy.mangoai.infrastructure.ModelInfoService.ModelType;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.reactivestreams.Publisher;
@@ -27,16 +27,16 @@ public class OpenAICompletionsClient {
 
   private static final Logger log = LogManager.getLogger(OpenAICompletionsClient.class);
   private final String apiKey;
-  private final ModelRegistry modelRegistry;
+  private final ModelInfoService modelInfoService;
   private final ObjectMapper objectMapper;
   private final WebClient webClient;
 
   public OpenAICompletionsClient(@Value("${pal.secrets.authkey}") final String apiKey,
-      final ObjectMapper objectMapper, final ModelRegistry modelRegistry) {
+      final ObjectMapper objectMapper, final ModelInfoService modelInfoService) {
     this.apiKey = apiKey;
     this.objectMapper = objectMapper;
     this.webClient = WebClient.create("https://api.openai.com/v1/");
-    this.modelRegistry = modelRegistry;
+    this.modelInfoService = modelInfoService;
   }
 
 
@@ -45,7 +45,7 @@ public class OpenAICompletionsClient {
     public Mono<TextCompletion> complete(final String prompt) {
       final OpenAiCompletionParams params = OpenAiCompletionParams.builder()
           .stream(false)
-          .maxTokens(modelRegistry.getMaxResponseTokens(ModelType.DAVINCI))
+          .maxTokens(modelInfoService.getMaxResponseTokens(ModelType.DAVINCI))
           .build();
       return OpenAICompletionsClient.this.complete(prompt, params)
           .bodyToMono(TextCompletion.class);
@@ -57,7 +57,7 @@ public class OpenAICompletionsClient {
     public Flux<TextCompletion> complete(final String prompt) {
       final OpenAiCompletionParams params = OpenAiCompletionParams.builder()
           .stream(true)
-          .maxTokens(modelRegistry.getMaxResponseTokens(ModelType.DAVINCI))
+          .maxTokens(modelInfoService.getMaxResponseTokens(ModelType.DAVINCI))
           .build();
       return OpenAICompletionsClient.this.complete(prompt, params)
           .bodyToFlux(new ParameterizedTypeReference<ServerSentEvent<String>>() {

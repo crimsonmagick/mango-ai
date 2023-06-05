@@ -9,8 +9,8 @@ import com.mangomelancholy.mangoai.application.conversation.ports.primary.Conver
 import com.mangomelancholy.mangoai.application.conversation.ports.secondary.AiSingletonService;
 import com.mangomelancholy.mangoai.application.conversation.ports.secondary.ConversationRepository;
 import com.mangomelancholy.mangoai.application.conversation.ports.secondary.MemoryService;
-import com.mangomelancholy.mangoai.infrastructure.ModelRegistry;
-import com.mangomelancholy.mangoai.infrastructure.ModelRegistry.ModelType;
+import com.mangomelancholy.mangoai.infrastructure.ModelInfoService;
+import com.mangomelancholy.mangoai.infrastructure.ModelInfoService.ModelType;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +25,7 @@ public class ConversationSingletonServiceImpl implements ConversationSingletonSe
   private final AiServiceResolver aiServiceResolver;
   private final ConversationRepository conversationRepository;
   private final MemoryService memoryService;
-  private final ModelRegistry modelRegistry;
+  private final ModelInfoService modelInfoService;
 
   @Override
   public Mono<List<String>> getConversationIds() {
@@ -36,7 +36,7 @@ public class ConversationSingletonServiceImpl implements ConversationSingletonSe
   public Mono<ConversationEntity> startConversation(final String messageContent, String model) {
     final AiSingletonService aiSingletonService = aiServiceResolver.resolveSingletonService(model);
     final ExpressionValue conversationSeed = new ExpressionValue(
-        modelRegistry.getInitialPrompt(ModelType.CHAT_GPT), ActorType.INITIAL_PROMPT);
+        modelInfoService.getInitialPrompt(ModelType.CHAT_GPT), ActorType.INITIAL_PROMPT);
     final ExpressionValue userGreeting = new ExpressionValue(messageContent, USER);
     final ConversationEntity startOfConversation = new ConversationEntity(conversationSeed,
         userGreeting);

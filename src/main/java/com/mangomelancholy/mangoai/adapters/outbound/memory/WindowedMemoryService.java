@@ -3,14 +3,12 @@ package com.mangomelancholy.mangoai.adapters.outbound.memory;
 import com.knuddels.jtokkit.Encodings;
 import com.knuddels.jtokkit.api.Encoding;
 import com.knuddels.jtokkit.api.EncodingRegistry;
-import com.knuddels.jtokkit.api.EncodingType;
-import com.mangomelancholy.mangoai.adapters.outbound.davinci.CompletionExpressionSerializer;
 import com.mangomelancholy.mangoai.application.conversation.ConversationEntity;
 import com.mangomelancholy.mangoai.application.conversation.ExpressionValue;
 import com.mangomelancholy.mangoai.application.conversation.ExpressionValue.ActorType;
 import com.mangomelancholy.mangoai.application.conversation.ports.secondary.MemoryService;
-import com.mangomelancholy.mangoai.infrastructure.ModelRegistry;
-import com.mangomelancholy.mangoai.infrastructure.ModelRegistry.ModelType;
+import com.mangomelancholy.mangoai.infrastructure.ModelInfoService;
+import com.mangomelancholy.mangoai.infrastructure.ModelInfoService.ModelType;
 import java.util.ArrayList;
 import java.util.List;
 import org.springframework.stereotype.Service;
@@ -20,12 +18,12 @@ import reactor.util.function.Tuples;
 @Service
 public class WindowedMemoryService implements MemoryService {
 
-  private final ModelRegistry modelRegistry;
+  private final ModelInfoService modelInfoService;
   private final EncodingRegistry registry;
   private final SerializationDelegator serializationDelegator;
 
-  WindowedMemoryService(final ModelRegistry modelRegistry, final SerializationDelegator serializationDelegator) {
-    this.modelRegistry = modelRegistry;
+  WindowedMemoryService(final ModelInfoService modelInfoService, final SerializationDelegator serializationDelegator) {
+    this.modelInfoService = modelInfoService;
     this.serializationDelegator = serializationDelegator;
     this.registry = Encodings.newDefaultEncodingRegistry();
   }
@@ -33,8 +31,9 @@ public class WindowedMemoryService implements MemoryService {
 
   @Override
   public ConversationEntity rememberConversation(final ConversationEntity conversation, String model) {
-    final long MAX_INPUT_TOKENS = modelRegistry.getMaxInputTokens(ModelType.DAVINCI);
-    final Encoding encoding = registry.getEncoding(EncodingType.R50K_BASE);
+    final ModelType modelType = ModelType.fromString(model);
+    final long MAX_INPUT_TOKENS = modelInfoService.getMaxInputTokens(modelType);
+    final Encoding encoding = registry.getEncoding(modelInfoService.getEncoding(modelType));
     final List<Tuple2<Long, ExpressionValue>> tokenPairs = conversation.getExpressions().stream()
         .map(value -> {
           final String serialized = serializationDelegator.serializeAsString(value, model);

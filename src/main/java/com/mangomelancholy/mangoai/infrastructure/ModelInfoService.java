@@ -1,15 +1,16 @@
 package com.mangomelancholy.mangoai.infrastructure;
 
-import static com.mangomelancholy.mangoai.infrastructure.ModelRegistry.ModelType.CHAT_GPT;
-import static com.mangomelancholy.mangoai.infrastructure.ModelRegistry.ModelType.DAVINCI;
+import static com.mangomelancholy.mangoai.infrastructure.ModelInfoService.ModelType.CHAT_GPT;
+import static com.mangomelancholy.mangoai.infrastructure.ModelInfoService.ModelType.DAVINCI;
 
+import com.knuddels.jtokkit.api.EncodingType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class ModelRegistry {
+public class ModelInfoService {
 
   private static final int MAX_INPUT_TOKENS = 3000;
   private static final int MAX_TOKENS = 4097;
@@ -29,6 +30,16 @@ public class ModelRegistry {
         return DAVINCI;
       }
     }
+  }
+
+  public EncodingType getEncoding(final ModelType model) {
+    if (model == DAVINCI) {
+      return EncodingType.R50K_BASE;
+    }
+    if (model == CHAT_GPT) {
+      return EncodingType.CL100K_BASE;
+    }
+    throw new RuntimeException("Unrecognized model type.");
   }
 
   public String getInitialPrompt(final ModelType model) {

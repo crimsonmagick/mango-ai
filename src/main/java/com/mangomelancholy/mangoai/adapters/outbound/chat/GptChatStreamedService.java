@@ -1,6 +1,5 @@
 package com.mangomelancholy.mangoai.adapters.outbound.chat;
 
-import com.mangomelancholy.mangoai.adapters.outbound.davinci.DavinciStreamedService;
 import com.mangomelancholy.mangoai.application.conversation.ConversationEntity;
 import com.mangomelancholy.mangoai.application.conversation.ExpressionFragment;
 import com.mangomelancholy.mangoai.application.conversation.ExpressionValue;
@@ -17,7 +16,7 @@ import reactor.core.publisher.Mono;
 @Service
 public class GptChatStreamedService implements AiStreamedService {
 
-  private static final Logger log = LogManager.getLogger(DavinciStreamedService.class);
+  private static final Logger log = LogManager.getLogger(GptChatStreamedService.class);
   private final ChatExpressionMapper chatExpressionMapper;
   private final ChatUtility chatUtility;
   private final OpenAIChatClient openAIChatClient;
