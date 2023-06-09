@@ -1,5 +1,4 @@
 spring:
-  config.import: secrets.yaml
   jackson:
     default-property-inclusion: non_null
   webflux:

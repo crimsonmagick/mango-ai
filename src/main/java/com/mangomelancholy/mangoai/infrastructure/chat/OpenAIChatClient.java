@@ -33,7 +33,7 @@ public class OpenAIChatClient {
   private final ObjectMapper objectMapper;
   private final WebClient webClient;
 
-  public OpenAIChatClient(@Value("${pal.secrets.authkey}") final String apiKey,
+  public OpenAIChatClient(@Value("#{systemEnvironment['PAL_SECRETS_AUTHKEY']}") final String apiKey,
       final ObjectMapper objectMapper, final ModelInfoService modelInfoService) {
     this.apiKey = apiKey;
     this.objectMapper = objectMapper;
@@ -88,7 +88,7 @@ public class OpenAIChatClient {
 
   private ResponseSpec complete(final List<ChatMessage> chatMessages, OpenAiChatParams params) {
     final OpenAiChatParams request = OpenAiChatParams.builder()
-        .model(params.model() == null ? "gpt-3.5-turbo" : params.model())
+        .model(params.model() == null ? "gpt-4" : params.model())
         .messages(chatMessages)
         .temperature(params.temperature() == null ? 1.0 : params.temperature())
         .max_tokens(params.max_tokens() == null ? 300 : params.max_tokens())
