@@ -10,7 +10,7 @@ public interface ConversationRepository {
   Flux<String> getConversationIds();
 
   Flux<ExpressionRecord> getExpressions(String conversationId);
-  Mono<ConversationRecord> update(ConversationRecord conversation);
+  Mono<ExpressionRecord> addExpression(ExpressionRecord expressionRecord);
 
 }
 

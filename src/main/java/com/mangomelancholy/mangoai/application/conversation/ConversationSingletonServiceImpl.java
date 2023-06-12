@@ -36,39 +36,40 @@ public class ConversationSingletonServiceImpl implements ConversationSingletonSe
   public Mono<ConversationEntity> startConversation(final String messageContent, String model) {
     final AiSingletonService aiSingletonService = aiServiceResolver.resolveSingletonService(model);
     final ExpressionValue conversationSeed = new ExpressionValue(
-        modelInfoService.getInitialPrompt(ModelType.CHAT_GPT), ActorType.INITIAL_PROMPT);
-    final ExpressionValue userGreeting = new ExpressionValue(messageContent, USER);
+        modelInfoService.getInitialPrompt(ModelType.CHAT_GPT), ActorType.INITIAL_PROMPT, null);
+    final ExpressionValue userGreeting = new ExpressionValue(messageContent, USER, null);
     final ConversationEntity startOfConversation = new ConversationEntity(conversationSeed,
         userGreeting);
     return conversationRepository.create(
             startOfConversation.toRecord())
         .flatMap(conversationRecord -> {
-          final ConversationEntity savedConversation = ConversationEntity.fromRecord(conversationRecord);
+          final ConversationEntity savedConversation = ConversationEntity.fromRecord(
+              conversationRecord);
           return aiSingletonService.exchange(savedConversation)
-              .map(savedConversation::addExpression)
-              .doOnNext(conversation -> conversationRepository.update(conversation.toRecord()));
+              .flatMap(expressionValue -> conversationRepository.addExpression(
+                  expressionValue.toRecord()))
+              .map(expressionRecord -> savedConversation.addExpression(
+                  ExpressionValue.fromRecord(expressionRecord)));
         });
   }
 
   @Override
-  public Mono<ExpressionValue> sendExpression(final String conversationId, final String messageContent, final String model) {
+  public Mono<ExpressionValue> sendExpression(final String conversationId,
+      final String messageContent, final String model) {
     final AiSingletonService aiSingletonService = aiServiceResolver.resolveSingletonService("gpt3");
     return conversationRepository.getConversation(conversationId)
         .switchIfEmpty(Mono.error(new ConversationNotFound(conversationId)))
         .flatMap(conversationRecord -> {
-          final ConversationEntity fullConversation = ConversationEntity.fromRecord(conversationRecord)
-              .addExpression(new ExpressionValue(messageContent, USER));
-          final ConversationEntity rememberedConversation = memoryService.rememberConversation(fullConversation, model);
+          final ConversationEntity fullConversation = ConversationEntity.fromRecord(
+                  conversationRecord)
+              .addExpression(new ExpressionValue(messageContent, USER, conversationId));
+          final ConversationEntity rememberedConversation = memoryService.rememberConversation(
+              fullConversation, model);
           return aiSingletonService.exchange(rememberedConversation)
-              .flatMap(responseExpression -> {
-                final ConversationEntity updatedConversation = fullConversation.addExpression(
-                    responseExpression);
-                return conversationRepository
-                    .update(updatedConversation.toRecord());
-              });
+              .flatMap(responseExpression -> conversationRepository.addExpression(
+                  responseExpression.toRecord()));
         })
-        .map(conversationRecord -> ConversationEntity.fromRecord(conversationRecord)
-            .getLastExpression());
+        .map(ExpressionValue::fromRecord);
   }
 
   @Override

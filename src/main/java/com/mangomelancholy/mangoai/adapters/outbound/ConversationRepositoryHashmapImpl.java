@@ -3,6 +3,8 @@ package com.mangomelancholy.mangoai.adapters.outbound;
 import com.mangomelancholy.mangoai.application.conversation.ports.secondary.ConversationRecord;
 import com.mangomelancholy.mangoai.application.conversation.ports.secondary.ConversationRepository;
 import com.mangomelancholy.mangoai.application.conversation.ports.secondary.ExpressionRecord;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -11,18 +13,19 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Repository
-public class ConversationRepositoryImpl implements ConversationRepository {
+public class ConversationRepositoryHashmapImpl implements ConversationRepository {
 
   final Map<String, ConversationRecord> conversations;
 
-  public ConversationRepositoryImpl() {
+  public ConversationRepositoryHashmapImpl() {
     conversations = new ConcurrentHashMap<>();
   }
 
   @Override
   public Mono<ConversationRecord> create(final ConversationRecord newConversation) {
     final String conversationId = UUID.randomUUID().toString();
-    final ConversationRecord newRecord = new ConversationRecord(conversationId, newConversation.expressions());
+    final ConversationRecord newRecord = new ConversationRecord(conversationId,
+        newConversation.expressions());
     conversations.put(conversationId, newRecord);
     return Mono.just(newRecord);
   }
@@ -52,8 +55,15 @@ public class ConversationRepositoryImpl implements ConversationRepository {
   }
 
   @Override
-  public Mono<ConversationRecord> update(final ConversationRecord conversation) {
-    conversations.put(conversation.conversationId(), conversation);
-    return Mono.just(conversation);
+  public Mono<ExpressionRecord> addExpression(final ExpressionRecord expressionRecord) {
+    final ConversationRecord conversation = conversations.get(expressionRecord.conversationId());
+    if (conversation == null) {
+      return Mono.empty();
+    }
+    final List<ExpressionRecord> expressions = new ArrayList<>(conversation.expressions());
+    expressions.add(expressionRecord);
+    conversations.put(expressionRecord.conversationId(),
+        new ConversationRecord(conversation.conversationId(), expressions));
+    return Mono.just(expressionRecord);
   }
 }
