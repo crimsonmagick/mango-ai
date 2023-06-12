@@ -21,7 +21,7 @@ public class DatabaseConfiguration {
   public ConnectionFactory connectionFactory() {
     return new H2ConnectionFactory(
         H2ConnectionConfiguration.builder()
-            .inMemory("testdb")
+            .file("/pal/db/paldb")
             .username("sa")
             .password("")
             .build()
