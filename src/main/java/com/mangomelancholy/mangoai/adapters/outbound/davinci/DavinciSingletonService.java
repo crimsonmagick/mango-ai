@@ -32,7 +32,7 @@ public class DavinciSingletonService implements AiSingletonService {
             log.error("Invalid response, response={}", response);
             throw new RuntimeException(String.format("Invalid response, response=%s", response));
           }
-          return completionUtility.mapExpressionValue(response);
+          return completionUtility.mapExpressionValue(response, conversationEntity.getConversationId());
         });
   }
 

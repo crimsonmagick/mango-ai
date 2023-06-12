@@ -26,7 +26,7 @@ public class GptChatStreamedService implements AiStreamedService {
     return openAIChatClient.streamed()
         .complete(chatExpressionMapper.mapConversation(conversationEntity))
         .flatMap(response -> {
-          final ExpressionValue content = chatUtility.mapResponse(response);
+          final ExpressionValue content = chatUtility.mapResponse(response, conversationEntity.getConversationId());
           if (content == null) {
             return Mono.empty();
           } else {

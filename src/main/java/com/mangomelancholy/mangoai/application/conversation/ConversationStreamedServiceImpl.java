@@ -35,8 +35,8 @@ public class ConversationStreamedServiceImpl implements ConversationStreamedServ
   public Flux<ExpressionFragment> startConversation(final String messageContent, final String model) {
     final AiStreamedService aiStreamedService = aiServiceResolver.resolveStreamedService(model);
     final ExpressionValue conversationSeed =
-        new ExpressionValue(modelInfoService.getInitialPrompt(ModelType.fromString(model)), ActorType.INITIAL_PROMPT);
-    final ExpressionValue userGreeting = new ExpressionValue(messageContent, USER);
+        new ExpressionValue(modelInfoService.getInitialPrompt(ModelType.fromString(model)), ActorType.INITIAL_PROMPT, null);
+    final ExpressionValue userGreeting = new ExpressionValue(messageContent, USER, null);
     final ConversationEntity startOfConversation = new ConversationEntity(conversationSeed,
         userGreeting);
     return conversationRepository.create(startOfConversation.toRecord())
@@ -47,8 +47,8 @@ public class ConversationStreamedServiceImpl implements ConversationStreamedServ
               .autoConnect(2);
           fragmentStream.map(ExpressionFragment::contentFragment)
               .collect(Collectors.joining())
-              .map(content -> conversation.addExpression(new ExpressionValue(content, PAL)))
-              .doOnNext(updatedConversation -> conversationRepository.update(updatedConversation.toRecord()))
+              .map(content -> new ExpressionValue(content, PAL, null))
+              .doOnNext(expressionValue -> conversationRepository.addExpression(expressionValue.toRecord()))
               .doOnError(throwable -> log.info("Error updating conversation with PAL response.", throwable))
               .subscribe();
           return fragmentStream;
@@ -63,15 +63,15 @@ public class ConversationStreamedServiceImpl implements ConversationStreamedServ
         .map(ConversationEntity::fromRecord)
         .flatMapMany(retrievedConversation -> {
           final ConversationEntity fullConversation = retrievedConversation
-              .addExpression(new ExpressionValue(messageContent, USER));
+              .addExpression(new ExpressionValue(messageContent, USER, null));
           final ConversationEntity rememberedConversation = memoryService.rememberConversation(fullConversation, model);
           final Flux<ExpressionFragment> fragmentStream = aiStreamedService.exchange(rememberedConversation)
               .publish()
               .autoConnect(2);
           fragmentStream.map(ExpressionFragment::contentFragment)
               .collect(Collectors.joining())
-              .map(content -> fullConversation.addExpression(new ExpressionValue(content, PAL)))
-              .doOnNext(updatedConversation -> conversationRepository.update(updatedConversation.toRecord()))
+              .map(content -> new ExpressionValue(content, PAL, null))
+              .doOnNext(expressionValue -> conversationRepository.addExpression(expressionValue.toRecord()))
               .doOnError(throwable -> log.info("Error updating conversation with PAL response.", throwable))
               .subscribe();
           return fragmentStream;

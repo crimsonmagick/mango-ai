@@ -29,30 +29,35 @@ public class ConversationRepositoryH2Impl implements ConversationRepository {
   public Mono<ConversationRecord> create(final ConversationRecord newConversation) {
     final String conversationId = UUID.randomUUID().toString();
     return Mono.usingWhen(connectionFactory.create(),
-            connection -> Mono.from(connection.beginTransaction())
-                .then(
-                    Mono.from(connection.createStatement("INSERT INTO CONVERSATIONS (ID) VALUES (?)")
-                            .bind(0, conversationId)
-                            .execute())
-                        .thenMany(fromIterable(newConversation.expressions()))
-                        .index()
-                        .flatMap(expressionTuple ->
-                            connection.createStatement(
-                                    "INSERT INTO EXPRESSIONS (CONTENT, ACTOR_TYPE, CONVERSATION_ID, SEQUENCE_NUMBER) VALUES (?, ?, ?, ?)")
-                                .bind(0, expressionTuple.getT2().content())
-                                .bind(1, expressionTuple.getT2().actor())
-                                .bind(2, conversationId)
-                                .bind(3, expressionTuple.getT1())
-                                .execute()
-                        )
-                        .then(Mono.from(connection.commitTransaction()))
-                        .doOnError(throwable -> log.error(
-                            "Failed to create conversation with conversationId={}", conversationId,
-                            throwable))
-                        .onErrorResume(throwable -> Mono.from(connection.rollbackTransaction())
-                            .then(Mono.error(throwable)))),
-            Connection::close)
-        .then(Mono.just(new ConversationRecord(conversationId, newConversation.expressions())));
+        connection -> Mono.from(connection.beginTransaction())
+            .then(
+                Mono.from(connection.createStatement("INSERT INTO CONVERSATIONS (ID) VALUES (?)")
+                    .bind(0, conversationId)
+                    .execute())
+            )
+            .thenMany(fromIterable(newConversation.expressions()))
+            .index()
+            .flatMap(expressionTuple ->
+                connection.createStatement(
+                        "INSERT INTO EXPRESSIONS (CONTENT, ACTOR_TYPE, CONVERSATION_ID, SEQUENCE_NUMBER) VALUES (?, ?, ?, ?)")
+                    .bind(0, expressionTuple.getT2().content())
+                    .bind(1, expressionTuple.getT2().actor())
+                    .bind(2, conversationId)
+                    .bind(3, expressionTuple.getT1())
+                    .execute()
+            )
+            .flatMap(result -> Mono.from(result.getRowsUpdated())
+                .doOnNext(rows -> log.info("rowsUpdated={}", rows))
+            )
+            .then(Mono.from(connection.commitTransaction()))
+            .thenReturn(new ConversationRecord(conversationId, newConversation.expressions()))
+            .doOnNext(conversationRecord -> log.info("conversationRecord={}", conversationRecord))
+            .doOnError(throwable -> log.error(
+                "Failed to create conversation with conversationId={}", conversationId,
+                throwable))
+            .onErrorResume(throwable -> Mono.from(connection.rollbackTransaction())
+                .then(Mono.error(throwable))),
+        Connection::close);
   }
 
   @Override
@@ -64,7 +69,12 @@ public class ConversationRepositoryH2Impl implements ConversationRepository {
 
   @Override
   public Flux<String> getConversationIds() {
-    return Flux.empty();
+    return Flux.usingWhen(connectionFactory.create(),
+            connection -> connection
+                .createStatement("SELECT ID FROM CONVERSATIONS")
+                .execute(),
+            Connection::close)
+        .flatMap(result -> result.map((row, meta) -> row.get("ID", String.class)));
   }
 
   @Override
@@ -79,13 +89,36 @@ public class ConversationRepositoryH2Impl implements ConversationRepository {
         .flatMap(result -> result.map((row, meta) -> {
           final String content = row.get("CONTENT", String.class);
           final String actorType = row.get("ACTOR_TYPE", String.class);
-          return new ExpressionRecord(content, actorType);
+          return new ExpressionRecord(content, actorType, conversationId);
         }));
   }
 
 
   @Override
-  public Mono<ConversationRecord> update(final ConversationRecord conversation) {
-    return Mono.empty();
+  public Mono<ExpressionRecord> addExpression(final ExpressionRecord expressionRecord) {
+    return Mono.from(connectionFactory.create())
+        .flatMap(connection ->
+            Mono.from(connection.beginTransaction())
+                .flatMap(v ->
+                    Mono.from(connection.createStatement("SELECT MAX(SEQUENCE_NUMBER) FROM EXPRESSIONS WHERE CONVERSATION_ID = ?")
+                        .bind(0, expressionRecord.conversationId())
+                        .execute())
+                )
+                .flatMap(result -> Mono.from(result.map((row, rowMetadata) -> row.get(0, Integer.class))))
+                .flatMap(sequenceNumber -> Mono.from(connection.createStatement(
+                            "INSERT INTO EXPRESSIONS (CONTENT, ACTOR_TYPE, CONVERSATION_ID, SEQUENCE_NUMBER) VALUES (?, ?, ?, ?)")
+                        .bind(0, expressionRecord.content())
+                        .bind(1, expressionRecord.actor())
+                        .bind(2, expressionRecord.conversationId())
+                        .bind(3, sequenceNumber)
+                        .execute())
+                    .then(Mono.from(connection.commitTransaction()))
+                    .doOnError(throwable -> log.error(
+                        "Failed to create expression with conversationId={}, sequenceNumber={}",
+                        expressionRecord.conversationId(), sequenceNumber, throwable))
+                    .onErrorResume(throwable -> Mono.from(connection.rollbackTransaction())
+                        .then(Mono.error(throwable)))
+                ))
+        .thenReturn(new ExpressionRecord(expressionRecord.content(), expressionRecord.actor(), expressionRecord.conversationId()));
   }
 }

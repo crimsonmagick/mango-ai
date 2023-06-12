@@ -21,10 +21,10 @@ public class CompletionUtility {
     return content.lastIndexOf(ATTRIBUTION);
   }
 
-  public ExpressionValue mapExpressionValue(final TextCompletion response) {
+  public ExpressionValue mapExpressionValue(final TextCompletion response, final String conversationId) {
     final String choiceText = extractChoiceText(response);
     final String normalizedChoiceText = normalizeChoice(choiceText);
-    return new ExpressionValue(normalizedChoiceText, ActorType.PAL);
+    return new ExpressionValue(normalizedChoiceText, ActorType.PAL, conversationId);
   }
 
   public String normalizeChoice(final String choiceText) {

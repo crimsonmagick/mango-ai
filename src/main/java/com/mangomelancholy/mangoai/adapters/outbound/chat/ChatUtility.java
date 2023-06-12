@@ -21,7 +21,7 @@ public class ChatUtility {
     }
   }
 
-  public ExpressionValue mapResponse(final ChatResponse response) {
+  public ExpressionValue mapResponse(final ChatResponse response, final String conversationId) {
     // assumes there will only be one message in response
     final Choice choice = response.choices().stream()
         .findAny()
@@ -37,7 +37,7 @@ public class ChatUtility {
     if (content == null) {
       return null;
     }
-    return new ExpressionValue(content, PAL);
+    return new ExpressionValue(content, PAL, conversationId);
   }
 }
 

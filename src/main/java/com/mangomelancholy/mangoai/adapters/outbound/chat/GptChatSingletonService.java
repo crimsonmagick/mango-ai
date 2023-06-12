@@ -27,7 +27,7 @@ public class GptChatSingletonService implements AiSingletonService {
     final List<ChatMessage> chatMessages = chatExpressionMapper.mapConversation(conversationEntity);
     return openAIChatClient.singleton().complete(chatMessages)
         .doOnError(throwable -> onError(throwable, chatMessages))
-        .map(chatUtility::mapResponse);
+        .map(response -> chatUtility.mapResponse(response, conversationEntity.getConversationId()));
   }
 
   private void onError(final Throwable throwable, final List<ChatMessage> content) {
