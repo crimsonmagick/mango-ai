@@ -40,10 +40,17 @@ public class DatabaseConfiguration {
         throw new RuntimeException("Unable to read schema.sql", e);
       }
       Mono.from(connectionFactory.create())
-          .flatMapMany(connection -> connection
-              .createBatch()
-              .add(schema)
-              .execute())
+          .flatMapMany(connection ->
+              Mono.from(connection.beginTransaction()) // Start a transaction
+                  .thenMany(Mono.from(connection
+                          .createBatch()
+                          .add(schema)
+                          .execute())
+                      .then(Mono.from(connection.commitTransaction())) // Commit the transaction
+                      .onErrorResume(throwable -> Mono.from(connection.rollbackTransaction())) // Rollback the transaction if an error occurs
+                  )
+                  .then(Mono.from(connection.close())) // Close the connection
+          )
           .then()
           .block();
     };

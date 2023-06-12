@@ -11,11 +11,11 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Repository
-public class ConversationRepositoryImpl implements ConversationRepository {
+public class ConversationRepositoryHashmapImpl implements ConversationRepository {
 
   final Map<String, ConversationRecord> conversations;
 
-  public ConversationRepositoryImpl() {
+  public ConversationRepositoryHashmapImpl() {
     conversations = new ConcurrentHashMap<>();
   }
 
