@@ -42,7 +42,7 @@ public class ConversationStreamedServiceImpl implements ConversationStreamedServ
     return conversationRepository.create(startOfConversation.toRecord())
         .flatMapMany(conversationRecord -> {
           final ConversationEntity conversation = ConversationEntity.fromRecord(conversationRecord);
-          Flux<ExpressionFragment> fragmentStream = aiStreamedService.exchange(conversation)
+          final Flux<ExpressionFragment> fragmentStream = aiStreamedService.exchange(conversation)
               .publish()
               .autoConnect(2);
           fragmentStream.map(ExpressionFragment::contentFragment)
@@ -62,17 +62,19 @@ public class ConversationStreamedServiceImpl implements ConversationStreamedServ
         .switchIfEmpty(Mono.error(new ConversationNotFound(conversationId)))
         .map(ConversationEntity::fromRecord)
         .flatMapMany(retrievedConversation -> {
-          final ConversationEntity fullConversation = retrievedConversation
-              .addExpression(new ExpressionValue(messageContent, USER, null));
+          final ExpressionValue requestExpression = new ExpressionValue(messageContent, USER, conversationId);
+          final ConversationEntity fullConversation = retrievedConversation.addExpression(requestExpression);
           final ConversationEntity rememberedConversation = memoryService.rememberConversation(fullConversation, model);
-          final Flux<ExpressionFragment> fragmentStream = aiStreamedService.exchange(rememberedConversation)
+          final Flux<ExpressionFragment> fragmentStream = conversationRepository.addExpression(requestExpression.toRecord())
+              .thenMany(aiStreamedService.exchange(rememberedConversation))
               .publish()
               .autoConnect(2);
           fragmentStream.map(ExpressionFragment::contentFragment)
               .collect(Collectors.joining())
-              .map(content -> new ExpressionValue(content, PAL, null))
-              .doOnNext(expressionValue -> conversationRepository.addExpression(expressionValue.toRecord()))
+              .map(content -> new ExpressionValue(content, PAL, conversationId))
+              .flatMap(expressionValue -> conversationRepository.addExpression(expressionValue.toRecord()))
               .doOnError(throwable -> log.info("Error updating conversation with PAL response.", throwable))
+              .doOnSuccess(expressionValue -> log.info("all done! expressionValue={}", expressionValue))
               .subscribe();
           return fragmentStream;
         });

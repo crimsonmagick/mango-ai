@@ -7,7 +7,7 @@ import com.mangomelancholy.mangoai.application.conversation.ports.secondary.Conv
 import com.mangomelancholy.mangoai.application.conversation.ports.secondary.ExpressionRecord;
 import io.r2dbc.spi.Connection;
 import io.r2dbc.spi.ConnectionFactory;
-import io.r2dbc.spi.Result;
+import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
@@ -29,6 +29,8 @@ public class ConversationRepositoryH2Impl implements ConversationRepository {
   @Override
   public Mono<ConversationRecord> create(final ConversationRecord newConversation) {
     final String conversationId = UUID.randomUUID().toString();
+    final List<ExpressionRecord> updatedExpressions = newConversation.expressions().stream()
+        .map(record -> new ExpressionRecord(record.content(), record.actor(), conversationId)).toList();
     return Mono.usingWhen(connectionFactory.create(),
         connection -> Mono.from(connection.beginTransaction())
             .then(
@@ -51,7 +53,7 @@ public class ConversationRepositoryH2Impl implements ConversationRepository {
                 .doOnNext(rows -> log.info("rowsUpdated={}", rows))
             )
             .then(Mono.from(connection.commitTransaction()))
-            .thenReturn(new ConversationRecord(conversationId, newConversation.expressions()))
+            .thenReturn(new ConversationRecord(conversationId, updatedExpressions))
             .doOnNext(conversationRecord -> log.info("conversationRecord={}", conversationRecord))
             .doOnError(throwable -> log.error(
                 "Failed to create conversation with conversationId={}", conversationId,
