@@ -28,6 +28,14 @@ public class ConversationSingletonServiceImpl implements ConversationSingletonSe
   private final ModelInfoService modelInfoService;
 
   @Override
+  public Mono<List<ExpressionValue>> getExpressions(final String conversationId) {
+    return conversationRepository.getExpressions(conversationId)
+        .switchIfEmpty(Mono.error(new ConversationNotFound(conversationId)))
+        .map(ExpressionValue::fromRecord)
+        .collect(Collectors.toList());
+  }
+
+  @Override
   public Mono<List<String>> getConversationIds() {
     return conversationRepository.getConversationIds().collect(Collectors.toList());
   }
@@ -60,23 +68,17 @@ public class ConversationSingletonServiceImpl implements ConversationSingletonSe
     return conversationRepository.getConversation(conversationId)
         .switchIfEmpty(Mono.error(new ConversationNotFound(conversationId)))
         .flatMap(conversationRecord -> {
-          final ConversationEntity fullConversation = ConversationEntity.fromRecord(
-                  conversationRecord)
-              .addExpression(new ExpressionValue(messageContent, USER, conversationId));
+          final ExpressionValue requestExpression = new ExpressionValue(messageContent, USER, conversationId);
+          final ConversationEntity fullConversation = ConversationEntity.fromRecord(conversationRecord)
+              .addExpression(requestExpression);
           final ConversationEntity rememberedConversation = memoryService.rememberConversation(
               fullConversation, model);
           return aiSingletonService.exchange(rememberedConversation)
-              .flatMap(responseExpression -> conversationRepository.addExpression(
-                  responseExpression.toRecord()));
+              .flatMap(responseExpression ->
+                  conversationRepository.addExpression(requestExpression.toRecord())
+                      .then(conversationRepository.addExpression(responseExpression.toRecord()))
+              );
         })
         .map(ExpressionValue::fromRecord);
-  }
-
-  @Override
-  public Mono<List<ExpressionValue>> getExpressions(final String conversationId) {
-    return conversationRepository.getExpressions(conversationId)
-        .switchIfEmpty(Mono.error(new ConversationNotFound(conversationId)))
-        .map(ExpressionValue::fromRecord)
-        .collect(Collectors.toList());
   }
 }
