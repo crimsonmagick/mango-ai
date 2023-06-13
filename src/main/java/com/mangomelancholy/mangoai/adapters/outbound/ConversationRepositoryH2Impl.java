@@ -7,6 +7,7 @@ import com.mangomelancholy.mangoai.application.conversation.ports.secondary.Conv
 import com.mangomelancholy.mangoai.application.conversation.ports.secondary.ExpressionRecord;
 import io.r2dbc.spi.Connection;
 import io.r2dbc.spi.ConnectionFactory;
+import io.r2dbc.spi.Result;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
@@ -96,15 +97,19 @@ public class ConversationRepositoryH2Impl implements ConversationRepository {
 
   @Override
   public Mono<ExpressionRecord> addExpression(final ExpressionRecord expressionRecord) {
-    return Mono.from(connectionFactory.create())
-        .flatMap(connection ->
+    return Mono.usingWhen(connectionFactory.create(),
+        connection ->
             Mono.from(connection.beginTransaction())
-                .flatMap(v ->
-                    Mono.from(connection.createStatement("SELECT MAX(SEQUENCE_NUMBER) FROM EXPRESSIONS WHERE CONVERSATION_ID = ?")
-                        .bind(0, expressionRecord.conversationId())
-                        .execute())
-                )
-                .flatMap(result -> Mono.from(result.map((row, rowMetadata) -> row.get(0, Integer.class))))
+                .then(Mono.from(connection.createStatement("SELECT MAX(SEQUENCE_NUMBER) FROM EXPRESSIONS WHERE CONVERSATION_ID = ?")
+                    .bind(0, expressionRecord.conversationId())
+                    .execute()))
+                .flatMap(result -> Mono.from(result.map(
+                    (row, rowMetadata) -> {
+                      final Integer sequenceNumber = row.get(0, Integer.class);
+                      log.info("sequenceNumber={}", sequenceNumber);
+                      return sequenceNumber;
+                    })
+                ))
                 .flatMap(sequenceNumber -> Mono.from(connection.createStatement(
                             "INSERT INTO EXPRESSIONS (CONTENT, ACTOR_TYPE, CONVERSATION_ID, SEQUENCE_NUMBER) VALUES (?, ?, ?, ?)")
                         .bind(0, expressionRecord.content())
@@ -118,7 +123,9 @@ public class ConversationRepositoryH2Impl implements ConversationRepository {
                         expressionRecord.conversationId(), sequenceNumber, throwable))
                     .onErrorResume(throwable -> Mono.from(connection.rollbackTransaction())
                         .then(Mono.error(throwable)))
-                ))
-        .thenReturn(new ExpressionRecord(expressionRecord.content(), expressionRecord.actor(), expressionRecord.conversationId()));
+                )
+                .thenReturn(new ExpressionRecord(expressionRecord.content(), expressionRecord.actor(), expressionRecord.conversationId())),
+        Connection::close);
   }
+
 }
