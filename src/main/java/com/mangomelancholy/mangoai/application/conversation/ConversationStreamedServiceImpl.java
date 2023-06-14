@@ -48,7 +48,7 @@ public class ConversationStreamedServiceImpl implements ConversationStreamedServ
           fragmentStream.map(ExpressionFragment::contentFragment)
               .collect(Collectors.joining())
               .map(content -> new ExpressionValue(content, PAL, null))
-              .doOnNext(expressionValue -> conversationRepository.addExpression(expressionValue.toRecord()))
+              .flatMap(expressionValue -> conversationRepository.addExpression(expressionValue.toRecord()))
               .doOnError(throwable -> log.info("Error updating conversation with PAL response.", throwable))
               .subscribe();
           return fragmentStream;
