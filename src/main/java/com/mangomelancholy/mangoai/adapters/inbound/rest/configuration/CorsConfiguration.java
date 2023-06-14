@@ -1,4 +1,4 @@
-package com.mangomelancholy.mangoai.adapters.inbound;
+package com.mangomelancholy.mangoai.adapters.inbound.rest.configuration;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

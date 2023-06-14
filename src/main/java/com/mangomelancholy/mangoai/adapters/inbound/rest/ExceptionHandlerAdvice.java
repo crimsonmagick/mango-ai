@@ -1,4 +1,4 @@
-package com.mangomelancholy.mangoai.adapters.inbound;
+package com.mangomelancholy.mangoai.adapters.inbound.rest;
 
 
 import com.mangomelancholy.mangoai.adapters.inbound.exceptions.AiWebError;
