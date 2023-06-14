@@ -4,6 +4,7 @@ import com.mangomelancholy.mangoai.application.conversation.ConversationEntity;
 import com.mangomelancholy.mangoai.application.conversation.ExpressionFragment;
 import com.mangomelancholy.mangoai.application.conversation.ExpressionValue;
 import com.mangomelancholy.mangoai.application.conversation.ports.secondary.AiStreamedService;
+import com.mangomelancholy.mangoai.infrastructure.ModelInfoService.ModelType;
 import com.mangomelancholy.mangoai.infrastructure.chat.OpenAIChatClient;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
@@ -22,9 +23,9 @@ public class GptChatStreamedService implements AiStreamedService {
   private final OpenAIChatClient openAIChatClient;
 
   @Override
-  public Flux<ExpressionFragment> exchange(final ConversationEntity conversationEntity) {
+  public Flux<ExpressionFragment> exchange(final ConversationEntity conversationEntity, ModelType modelType) {
     return openAIChatClient.streamed()
-        .complete(chatExpressionMapper.mapConversation(conversationEntity))
+        .complete(chatExpressionMapper.mapConversation(conversationEntity), modelType)
         .flatMap(response -> {
           final ExpressionValue content = chatUtility.mapResponse(response, conversationEntity.getConversationId());
           if (content == null) {

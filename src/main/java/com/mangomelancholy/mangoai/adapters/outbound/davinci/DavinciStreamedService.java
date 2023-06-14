@@ -3,6 +3,7 @@ package com.mangomelancholy.mangoai.adapters.outbound.davinci;
 import com.mangomelancholy.mangoai.application.conversation.ConversationEntity;
 import com.mangomelancholy.mangoai.application.conversation.ExpressionFragment;
 import com.mangomelancholy.mangoai.application.conversation.ports.secondary.AiStreamedService;
+import com.mangomelancholy.mangoai.infrastructure.ModelInfoService.ModelType;
 import com.mangomelancholy.mangoai.infrastructure.completions.OpenAICompletionsClient;
 import java.util.concurrent.atomic.AtomicBoolean;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +23,7 @@ public class DavinciStreamedService implements AiStreamedService {
   private final CompletionConversationSerializer completionConversationSerializer;
 
   @Override
-  public Flux<ExpressionFragment> exchange(final ConversationEntity conversationEntity) {
+  public Flux<ExpressionFragment> exchange(final ConversationEntity conversationEntity, final ModelType modelType) {
     final StringBuilder sb = new StringBuilder();
     final AtomicBoolean attributionRemoved = new AtomicBoolean(false);
     return completionsClient.streamed()

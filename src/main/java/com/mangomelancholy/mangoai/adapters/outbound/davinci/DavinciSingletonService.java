@@ -3,6 +3,7 @@ package com.mangomelancholy.mangoai.adapters.outbound.davinci;
 import com.mangomelancholy.mangoai.application.conversation.ConversationEntity;
 import com.mangomelancholy.mangoai.application.conversation.ExpressionValue;
 import com.mangomelancholy.mangoai.application.conversation.ports.secondary.AiSingletonService;
+import com.mangomelancholy.mangoai.infrastructure.ModelInfoService.ModelType;
 import com.mangomelancholy.mangoai.infrastructure.completions.OpenAICompletionsClient;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
@@ -22,7 +23,7 @@ public class DavinciSingletonService implements AiSingletonService {
   private final CompletionConversationSerializer completionConversationSerializer;
 
   @Override
-  public Mono<ExpressionValue> exchange(final ConversationEntity conversationEntity) {
+  public Mono<ExpressionValue> exchange(final ConversationEntity conversationEntity, final ModelType modelType) {
     final String content = completionConversationSerializer.serializeConversation(conversationEntity);
     return completionsClient.singleton().complete(content)
         .doOnError(throwable -> onError(throwable, content))

@@ -24,7 +24,7 @@ public class OpenAIChatClient {
 
   public interface Delegation<T extends Publisher<ChatResponse>> {
 
-    T complete(List<ChatMessage> chatMessages);
+    T complete(List<ChatMessage> chatMessages, ModelType modelType);
   }
 
   private static final Logger log = LogManager.getLogger(OpenAIChatClient.class);
@@ -44,10 +44,11 @@ public class OpenAIChatClient {
 
   public class SingletonDelegation implements Delegation<Mono<ChatResponse>> {
 
-    public Mono<ChatResponse> complete(final List<ChatMessage> prompt) {
+    public Mono<ChatResponse> complete(final List<ChatMessage> prompt, final ModelType modelType) {
       final OpenAiChatParams params = OpenAiChatParams.builder()
           .stream(false)
-          .max_tokens(modelInfoService.getMaxResponseTokens(ModelType.CHAT_GPT))
+          .max_tokens(modelInfoService.getMaxResponseTokens(modelType))
+          .model(modelType.modelString())
           .build();
       return OpenAIChatClient.this.complete(prompt, params)
           .bodyToMono(ChatResponse.class);
@@ -56,10 +57,11 @@ public class OpenAIChatClient {
 
   public class StreamedDelegation implements Delegation<Flux<ChatResponse>> {
 
-    public Flux<ChatResponse> complete(final List<ChatMessage> chatMessages) {
+    public Flux<ChatResponse> complete(final List<ChatMessage> chatMessages, final ModelType modelType) {
       final OpenAiChatParams params = OpenAiChatParams.builder()
           .stream(true)
-          .max_tokens(modelInfoService.getMaxResponseTokens(ModelType.CHAT_GPT))
+          .max_tokens(modelInfoService.getMaxResponseTokens(modelType))
+          .model(modelType.modelString())
           .build();
       return OpenAIChatClient.this.complete(chatMessages, params)
           .bodyToFlux(new ParameterizedTypeReference<ServerSentEvent<String>>() {
@@ -86,9 +88,9 @@ public class OpenAIChatClient {
     return new StreamedDelegation();
   }
 
-  private ResponseSpec complete(final List<ChatMessage> chatMessages, OpenAiChatParams params) {
+  private ResponseSpec complete(final List<ChatMessage> chatMessages, final OpenAiChatParams params) {
     final OpenAiChatParams request = OpenAiChatParams.builder()
-        .model(params.model() == null ? "gpt-4" : params.model())
+        .model(params.model() == null ? "gpt-3" : params.model())
         .messages(chatMessages)
         .temperature(params.temperature() == null ? 1.0 : params.temperature())
         .max_tokens(params.max_tokens() == null ? 300 : params.max_tokens())

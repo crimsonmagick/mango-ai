@@ -33,7 +33,8 @@ public class ConversationStreamedServiceImpl implements ConversationStreamedServ
 
   @Override
   public Flux<ExpressionFragment> startConversation(final String messageContent, final String model) {
-    final AiStreamedService aiStreamedService = aiServiceResolver.resolveStreamedService(model);
+    final ModelType modelType = ModelType.fromString(model);
+    final AiStreamedService aiStreamedService = aiServiceResolver.resolveStreamedService(modelType);
     final ExpressionValue conversationSeed =
         new ExpressionValue(modelInfoService.getInitialPrompt(ModelType.fromString(model)), ActorType.INITIAL_PROMPT, null);
     final ExpressionValue userGreeting = new ExpressionValue(messageContent, USER, null);
@@ -42,7 +43,7 @@ public class ConversationStreamedServiceImpl implements ConversationStreamedServ
     return conversationRepository.create(startOfConversation.toRecord())
         .flatMapMany(conversationRecord -> {
           final ConversationEntity conversation = ConversationEntity.fromRecord(conversationRecord);
-          final Flux<ExpressionFragment> fragmentStream = aiStreamedService.exchange(conversation)
+          final Flux<ExpressionFragment> fragmentStream = aiStreamedService.exchange(conversation, modelType)
               .publish()
               .autoConnect(2);
           fragmentStream.map(ExpressionFragment::contentFragment)
@@ -57,7 +58,8 @@ public class ConversationStreamedServiceImpl implements ConversationStreamedServ
 
   @Override
   public Flux<ExpressionFragment> sendExpression(final String conversationId, final String messageContent, final String model) {
-    final AiStreamedService aiStreamedService = aiServiceResolver.resolveStreamedService(model);
+    final ModelType modelType = ModelType.fromString(model);
+    final AiStreamedService aiStreamedService = aiServiceResolver.resolveStreamedService(modelType);
     return conversationRepository.getConversation(conversationId)
         .switchIfEmpty(Mono.error(new ConversationNotFound(conversationId)))
         .map(ConversationEntity::fromRecord)
@@ -66,7 +68,7 @@ public class ConversationStreamedServiceImpl implements ConversationStreamedServ
           final ConversationEntity fullConversation = retrievedConversation.addExpression(requestExpression);
           final ConversationEntity rememberedConversation = memoryService.rememberConversation(fullConversation, model);
           final Flux<ExpressionFragment> fragmentStream = conversationRepository.addExpression(requestExpression.toRecord())
-              .thenMany(aiStreamedService.exchange(rememberedConversation))
+              .thenMany(aiStreamedService.exchange(rememberedConversation, modelType))
               .publish()
               .autoConnect(2);
           fragmentStream.map(ExpressionFragment::contentFragment)
