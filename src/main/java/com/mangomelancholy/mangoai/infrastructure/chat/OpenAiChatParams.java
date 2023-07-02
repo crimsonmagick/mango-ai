@@ -8,8 +8,6 @@ import lombok.Builder;
 
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public record OpenAiChatParams(String model, List<ChatMessage> messages, Boolean stream, Double temperature, Integer max_tokens,
-                               Double top_p, List<String> stop, Double frequency_penalty, Double presence_penalty, Map<String, String> logit_bias,
-                               String user) {
+public record OpenAiChatParams(String model, List<ChatMessage> messages, Boolean stream, Double temperature, Integer max_tokens, Double top_p, List<String> stop, Double frequency_penalty, Double presence_penalty, Map<String, String> logit_bias, String user) {
 
 }

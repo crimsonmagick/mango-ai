@@ -49,12 +49,8 @@ public class ConversationRepositoryH2Impl implements ConversationRepository {
                     .bind(3, expressionTuple.getT1())
                     .execute()
             )
-            .flatMap(result -> Mono.from(result.getRowsUpdated())
-                .doOnNext(rows -> log.info("rowsUpdated={}", rows))
-            )
             .then(Mono.from(connection.commitTransaction()))
             .thenReturn(new ConversationRecord(conversationId, updatedExpressions))
-            .doOnNext(conversationRecord -> log.info("conversationRecord={}", conversationRecord))
             .doOnError(throwable -> log.error(
                 "Failed to create conversation with conversationId={}", conversationId,
                 throwable))
