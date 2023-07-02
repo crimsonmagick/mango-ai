@@ -102,11 +102,7 @@ public class ConversationRepositoryH2Impl implements ConversationRepository {
                     .bind(0, expressionRecord.conversationId())
                     .execute()))
                 .flatMap(result -> Mono.from(result.map(
-                    (row, rowMetadata) -> {
-                      final Integer sequenceNumber = row.get(0, Integer.class);
-                      log.info("sequenceNumber={}", sequenceNumber);
-                      return sequenceNumber;
-                    })
+                    (row, rowMetadata) -> row.get(0, Integer.class))
                 ))
                 .flatMap(sequenceNumber -> Mono.from(connection.createStatement(
                             "INSERT INTO EXPRESSIONS (CONTENT, ACTOR_TYPE, CONVERSATION_ID, SEQUENCE_NUMBER) VALUES (?, ?, ?, ?)")
