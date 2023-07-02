@@ -58,6 +58,6 @@ public class WindowedMemoryService implements MemoryService {
     } else {
       remembered = new ArrayList<>(conversation.getExpressions());
     }
-    return new ConversationEntity(conversation.getConversationId(), remembered);
+    return new ConversationEntity(conversation.getConversationId(), remembered, conversation.getSummary());
   }
 }

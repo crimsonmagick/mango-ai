@@ -25,7 +25,7 @@ public class ConversationRepositoryHashmapImpl implements ConversationRepository
   public Mono<ConversationRecord> create(final ConversationRecord newConversation) {
     final String conversationId = UUID.randomUUID().toString();
     final ConversationRecord newRecord = new ConversationRecord(conversationId,
-        newConversation.expressions());
+        newConversation.expressions(), newConversation.summary());
     conversations.put(conversationId, newRecord);
     return Mono.just(newRecord);
   }
@@ -63,7 +63,7 @@ public class ConversationRepositoryHashmapImpl implements ConversationRepository
     final List<ExpressionRecord> expressions = new ArrayList<>(conversation.expressions());
     expressions.add(expressionRecord);
     conversations.put(expressionRecord.conversationId(),
-        new ConversationRecord(conversation.conversationId(), expressions));
+        new ConversationRecord(conversation.conversationId(), expressions, conversation.summary()));
     return Mono.just(expressionRecord);
   }
 }

@@ -34,8 +34,9 @@ public class ConversationRepositoryH2Impl implements ConversationRepository {
     return Mono.usingWhen(connectionFactory.create(),
         connection -> Mono.from(connection.beginTransaction())
             .then(
-                Mono.from(connection.createStatement("INSERT INTO CONVERSATIONS (ID) VALUES (?)")
+                Mono.from(connection.createStatement("INSERT INTO CONVERSATIONS (ID, SUMMARY) VALUES (?, ?)")
                     .bind(0, conversationId)
+                    .bind(1, newConversation.summary())
                     .execute())
             )
             .thenMany(fromIterable(newConversation.expressions()))
@@ -50,7 +51,7 @@ public class ConversationRepositoryH2Impl implements ConversationRepository {
                     .execute()
             )
             .then(Mono.from(connection.commitTransaction()))
-            .thenReturn(new ConversationRecord(conversationId, updatedExpressions))
+            .thenReturn(new ConversationRecord(conversationId, updatedExpressions, newConversation.summary()))
             .doOnError(throwable -> log.error(
                 "Failed to create conversation with conversationId={}", conversationId,
                 throwable))
@@ -61,9 +62,17 @@ public class ConversationRepositoryH2Impl implements ConversationRepository {
 
   @Override
   public Mono<ConversationRecord> getConversation(final String conversationId) {
-    return getExpressions(conversationId)
-        .collectList()
-        .map(expressionRecords -> new ConversationRecord(conversationId, expressionRecords));
+    return Mono.usingWhen(connectionFactory.create(),
+            connection ->
+                Mono.from(connection.createStatement("SELECT SUMMARY FROM CONVERSATIONS WHERE ID = ?")
+                    .bind(0, conversationId)
+                    .execute()),
+            Connection::close)
+        .flatMap(result ->
+            Mono.from(result.map((row, metadata) -> row.get(0, String.class))))
+        .flatMap(summary -> getExpressions(conversationId)
+            .collectList()
+            .map(expressionRecords -> new ConversationRecord(conversationId, expressionRecords, summary)));
   }
 
   @Override
