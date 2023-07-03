@@ -2,6 +2,7 @@ package com.mangomelancholy.mangoai.adapters.inbound.rest;
 
 import com.mangomelancholy.mangoai.application.conversation.ConversationSingletonServiceImpl;
 import com.mangomelancholy.mangoai.application.conversation.ExpressionValue;
+import com.mangomelancholy.mangoai.application.conversation.ports.primary.ConversationSummary;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
@@ -24,14 +25,19 @@ public class ConversationSingletonController {
   }
 
   @GetMapping("/singleton/conversations/ids")
-  public Mono<List<String>> getConversations() {
+  public Mono<List<String>> getConversationIds() {
     return conversationSingletonService.getConversationIds();
+  }
+
+  @GetMapping("/singleton/conversations/summaries")
+  public Mono<List<ConversationSummary>> getConversations() {
+    return conversationSingletonService.getSummaries();
   }
 
   @GetMapping("/singleton/conversations/{id}/expressions")
   public Mono<List<ExpressionJson>> getExpressions(@PathVariable String id) {
     return conversationSingletonService.getExpressions(id).map(values -> values.stream()
-        .map(value -> new ExpressionJson(null, value.content(), value.actor().toString(), null))
+        .map(value -> new ExpressionJson(null, value.content(), value.actor().toString(), null, null))
         .collect(Collectors.toList())
     );
   }
@@ -40,7 +46,7 @@ public class ConversationSingletonController {
   public Mono<ExpressionJson> sendExpression(@PathVariable String id, @RequestBody ExpressionJson expressionJson) {
     final String model = expressionJson.model() == null ? "gpt-3" : expressionJson.model();
     return conversationSingletonService.sendExpression(id, expressionJson.content(), model)
-        .map(expressionValue -> new ExpressionJson(id, expressionValue.content(), expressionValue.actor().toString(), model))
+        .map(expressionValue -> new ExpressionJson(id, expressionValue.content(), expressionValue.actor().toString(), model, null))
         .doOnError(ConversationSingletonController::error);
   }
 
@@ -51,7 +57,7 @@ public class ConversationSingletonController {
         .map(conversation -> {
           final ExpressionValue lastExpression = conversation.getLastExpression();
           return new ExpressionJson(conversation.getConversationId(), lastExpression.content(),
-              lastExpression.actor().toString(), model);
+              lastExpression.actor().toString(), model, conversation.getSummary());
         })
         .doOnError(ConversationSingletonController::error);
   }

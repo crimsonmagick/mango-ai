@@ -6,6 +6,7 @@ import com.mangomelancholy.mangoai.application.AiServiceResolver;
 import com.mangomelancholy.mangoai.application.conversation.ExpressionValue.ActorType;
 import com.mangomelancholy.mangoai.application.conversation.ports.primary.ConversationNotFound;
 import com.mangomelancholy.mangoai.application.conversation.ports.primary.ConversationSingletonService;
+import com.mangomelancholy.mangoai.application.conversation.ports.primary.ConversationSummary;
 import com.mangomelancholy.mangoai.application.conversation.ports.secondary.AiSingletonService;
 import com.mangomelancholy.mangoai.application.conversation.ports.secondary.ConversationRepository;
 import com.mangomelancholy.mangoai.application.conversation.ports.secondary.MemoryService;
@@ -38,6 +39,13 @@ public class ConversationSingletonServiceImpl implements ConversationSingletonSe
   @Override
   public Mono<List<String>> getConversationIds() {
     return conversationRepository.getConversationIds().collect(Collectors.toList());
+  }
+
+  @Override
+  public Mono<List<ConversationSummary>> getSummaries() {
+    return conversationRepository.getConversationSummaries()
+        .map(record -> new ConversationSummary(record.conversationId(), record.summary()))
+        .collectList();
   }
 
   @Override

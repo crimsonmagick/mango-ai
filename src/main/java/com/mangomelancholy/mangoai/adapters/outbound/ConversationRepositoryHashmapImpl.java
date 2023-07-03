@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -42,6 +43,15 @@ public class ConversationRepositoryHashmapImpl implements ConversationRepository
   @Override
   public Flux<String> getConversationIds() {
     return Flux.fromIterable(conversations.keySet());
+  }
+
+  @Override
+  public Flux<ConversationRecord> getConversationSummaries() {
+    return Flux.fromIterable(conversations.entrySet().stream()
+        .map(conversationEntry ->
+            new ConversationRecord(conversationEntry.getKey(), null,
+                conversationEntry.getValue().summary()))
+        .collect(Collectors.toList()));
   }
 
   @Override

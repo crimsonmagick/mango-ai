@@ -86,6 +86,20 @@ public class ConversationRepositoryH2Impl implements ConversationRepository {
   }
 
   @Override
+  public Flux<ConversationRecord> getConversationSummaries() {
+    return Flux.usingWhen(connectionFactory.create(),
+            connection -> connection
+                .createStatement("SELECT ID, SUMMARY FROM CONVERSATIONS")
+                .execute(),
+            Connection::close)
+        .flatMap(result -> result.map((row, meta) -> {
+          final String id = row.get("ID", String.class);
+          final String summary = row.get("SUMMARY", String.class);
+          return new ConversationRecord(id, null, summary);
+        }));
+  }
+
+  @Override
   public Flux<ExpressionRecord> getExpressions(final String conversationId) {
     return Flux.usingWhen(connectionFactory.create(),
             connection -> connection
