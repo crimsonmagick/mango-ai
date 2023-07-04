@@ -44,7 +44,7 @@ public class ConversationSingletonServiceImpl implements ConversationSingletonSe
   @Override
   public Mono<List<ConversationSummary>> getSummaries() {
     return conversationRepository.getConversationSummaries()
-        .map(record -> new ConversationSummary(record.conversationId(), record.summary()))
+        .map(record -> new ConversationSummary(record.conversationId(), record.summary(), record.createdAt(), record.updatedAt()))
         .collectList();
   }
 

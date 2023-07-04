@@ -97,13 +97,15 @@ public class ConversationRepositoryH2Impl implements ConversationRepository {
   public Flux<ConversationRecord> getConversationSummaries() {
     return Flux.usingWhen(connectionFactory.create(),
             connection -> connection
-                .createStatement("SELECT ID, SUMMARY FROM CONVERSATIONS")
+                .createStatement("SELECT ID, SUMMARY, CREATED_AT, UPDATED_AT FROM CONVERSATIONS")
                 .execute(),
             Connection::close)
         .flatMap(result -> result.map((row, meta) -> {
           final String id = row.get("ID", String.class);
           final String summary = row.get("SUMMARY", String.class);
-          return new ConversationRecord(id, null, summary, null, null);
+          final ZonedDateTime createdAt = row.get("CREATED_AT", ZonedDateTime.class);
+          final ZonedDateTime updatedAt = row.get("UPDATED_AT", ZonedDateTime.class);
+          return new ConversationRecord(id, null, summary, createdAt, updatedAt);
         }));
   }
 
