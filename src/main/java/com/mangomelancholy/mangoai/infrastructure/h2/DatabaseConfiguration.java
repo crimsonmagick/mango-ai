@@ -6,6 +6,8 @@ import io.r2dbc.spi.ConnectionFactory;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,15 +19,11 @@ import reactor.core.publisher.Mono;
 @Configuration
 public class DatabaseConfiguration {
 
+  private static final Logger log = LogManager.getLogger(DatabaseConfiguration.class);
+
   @Bean
   public ConnectionFactory connectionFactory() {
-    return new H2ConnectionFactory(
-        H2ConnectionConfiguration.builder()
-            .file("/pal/db/paldb")
-            .username("sa")
-            .password("")
-            .build()
-    );
+    return new H2ConnectionFactory(H2ConnectionConfiguration.builder().file("/pal/db/paldb").username("sa").password("").build());
   }
 
 
@@ -34,25 +32,18 @@ public class DatabaseConfiguration {
     return event -> {
       final String schema;
       try {
-        schema = FileCopyUtils.copyToString(new InputStreamReader(
-            new ClassPathResource("schema.sql").getInputStream(), StandardCharsets.UTF_8));
+        schema = FileCopyUtils.copyToString(new InputStreamReader(new ClassPathResource("schema.sql").getInputStream(), StandardCharsets.UTF_8));
       } catch (IOException e) {
         throw new RuntimeException("Unable to read schema.sql", e);
       }
-      Mono.from(connectionFactory.create())
-          .flatMapMany(connection ->
-              Mono.from(connection.beginTransaction()) // Start a transaction
-                  .thenMany(Mono.from(connection
-                          .createBatch()
-                          .add(schema)
-                          .execute())
-                      .then(Mono.from(connection.commitTransaction())) // Commit the transaction
-                      .onErrorResume(throwable -> Mono.from(connection.rollbackTransaction())) // Rollback the transaction if an error occurs
-                  )
-                  .then(Mono.from(connection.close())) // Close the connection
-          )
-          .then()
-          .block();
+      Mono.from(connectionFactory.create()).flatMapMany(connection -> Mono.from(connection.beginTransaction()) // Start a transaction
+          .thenMany(Mono.from(connection.createBatch().add(schema).execute())
+              .then(Mono.from(connection.commitTransaction())) // Commit the transaction
+              .onErrorResume(throwable -> {
+                log.error("Unable to initialize database", throwable);
+                return Mono.from(connection.rollbackTransaction());
+              })).then(Mono.from(connection.close())) // Close the connection
+      ).then().block();
     };
   }
 }

@@ -58,7 +58,7 @@ public class ConversationEntity {
 
   public ConversationRecord toRecord() {
     final List<ExpressionRecord> expressionRecords = expressionValues.stream().map(ExpressionValue::toRecord).toList();
-    return new ConversationRecord(conversationId, expressionRecords, summary);
+    return new ConversationRecord(conversationId, expressionRecords, summary, null, null);
   }
 
 }

@@ -1,8 +1,11 @@
 package com.mangomelancholy.mangoai.adapters.outbound;
 
+import static java.time.temporal.ChronoField.INSTANT_SECONDS;
+
 import com.mangomelancholy.mangoai.application.conversation.ports.secondary.ConversationRecord;
 import com.mangomelancholy.mangoai.application.conversation.ports.secondary.ConversationRepository;
 import com.mangomelancholy.mangoai.application.conversation.ports.secondary.ExpressionRecord;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -25,8 +28,9 @@ public class ConversationRepositoryHashmapImpl implements ConversationRepository
   @Override
   public Mono<ConversationRecord> create(final ConversationRecord newConversation) {
     final String conversationId = UUID.randomUUID().toString();
+    final long timestamp = ZonedDateTime.now().getLong(INSTANT_SECONDS);
     final ConversationRecord newRecord = new ConversationRecord(conversationId,
-        newConversation.expressions(), newConversation.summary());
+        newConversation.expressions(), newConversation.summary(), timestamp, timestamp);
     conversations.put(conversationId, newRecord);
     return Mono.just(newRecord);
   }
@@ -49,8 +53,11 @@ public class ConversationRepositoryHashmapImpl implements ConversationRepository
   public Flux<ConversationRecord> getConversationSummaries() {
     return Flux.fromIterable(conversations.entrySet().stream()
         .map(conversationEntry ->
-            new ConversationRecord(conversationEntry.getKey(), null,
-                conversationEntry.getValue().summary()))
+            new ConversationRecord(conversationEntry.getKey(),
+                null,
+                conversationEntry.getValue().summary(),
+                conversationEntry.getValue().createdAt(),
+                conversationEntry.getValue().updatedAt()))
         .collect(Collectors.toList()));
   }
 
@@ -73,7 +80,11 @@ public class ConversationRepositoryHashmapImpl implements ConversationRepository
     final List<ExpressionRecord> expressions = new ArrayList<>(conversation.expressions());
     expressions.add(expressionRecord);
     conversations.put(expressionRecord.conversationId(),
-        new ConversationRecord(conversation.conversationId(), expressions, conversation.summary()));
+        new ConversationRecord(conversation.conversationId(),
+            expressions,
+            conversation.summary(),
+            conversation.createdAt(),
+            conversation.updatedAt()));
     return Mono.just(expressionRecord);
   }
 }

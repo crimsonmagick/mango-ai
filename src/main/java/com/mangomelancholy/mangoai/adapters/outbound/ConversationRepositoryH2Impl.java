@@ -51,7 +51,7 @@ public class ConversationRepositoryH2Impl implements ConversationRepository {
                     .execute()
             )
             .then(Mono.from(connection.commitTransaction()))
-            .thenReturn(new ConversationRecord(conversationId, updatedExpressions, newConversation.summary()))
+            .thenReturn(new ConversationRecord(conversationId, updatedExpressions, newConversation.summary(), null, null))
             .doOnError(throwable -> log.error(
                 "Failed to create conversation with conversationId={}", conversationId,
                 throwable))
@@ -72,7 +72,7 @@ public class ConversationRepositoryH2Impl implements ConversationRepository {
             Mono.from(result.map((row, metadata) -> row.get(0, String.class))))
         .flatMap(summary -> getExpressions(conversationId)
             .collectList()
-            .map(expressionRecords -> new ConversationRecord(conversationId, expressionRecords, summary)));
+            .map(expressionRecords -> new ConversationRecord(conversationId, expressionRecords, summary, null, null)));
   }
 
   @Override
@@ -95,7 +95,7 @@ public class ConversationRepositoryH2Impl implements ConversationRepository {
         .flatMap(result -> result.map((row, meta) -> {
           final String id = row.get("ID", String.class);
           final String summary = row.get("SUMMARY", String.class);
-          return new ConversationRecord(id, null, summary);
+          return new ConversationRecord(id, null, summary, null, null);
         }));
   }
 
