@@ -1,7 +1,8 @@
 package com.mangomelancholy.mangoai.application.conversation.ports.secondary;
 
+import java.time.ZonedDateTime;
 import java.util.List;
 
-public record ConversationRecord(String conversationId, List<ExpressionRecord> expressions, String summary, Long createdAt, Long updatedAt)  {
+public record ConversationRecord(String conversationId, List<ExpressionRecord> expressions, String summary, ZonedDateTime createdAt, ZonedDateTime updatedAt)  {
 
 }

@@ -7,6 +7,7 @@ import com.mangomelancholy.mangoai.application.conversation.ports.secondary.Conv
 import com.mangomelancholy.mangoai.application.conversation.ports.secondary.ExpressionRecord;
 import io.r2dbc.spi.Connection;
 import io.r2dbc.spi.ConnectionFactory;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -50,8 +51,15 @@ public class ConversationRepositoryH2Impl implements ConversationRepository {
                     .bind(3, expressionTuple.getT1())
                     .execute()
             )
-            .then(Mono.from(connection.commitTransaction()))
-            .thenReturn(new ConversationRecord(conversationId, updatedExpressions, newConversation.summary(), null, null))
+            .then(Mono.from(connection.createStatement("SELECT CREATED_AT, UPDATED_AT FROM CONVERSATIONS WHERE ID = ?")
+                .bind(0, conversationId)
+                .execute()
+            ))
+            .flatMap(result -> Mono.from(result.map(
+                (row, metadata) ->
+                    new ConversationRecord(conversationId, updatedExpressions, newConversation.summary(),
+                        row.get(0, ZonedDateTime.class), row.get(1, ZonedDateTime.class)))))
+            .flatMap(conversationRecord -> Mono.from(connection.commitTransaction()).thenReturn(conversationRecord))
             .doOnError(throwable -> log.error(
                 "Failed to create conversation with conversationId={}", conversationId,
                 throwable))
