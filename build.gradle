@@ -30,8 +30,9 @@ dependencies {
     implementation platform('org.apache.groovy:groovy-bom:4.0.5')
     implementation 'org.apache.groovy:groovy'
 
-    testImplementation platform("org.spockframework:spock-bom:2.3-groovy-4.0")
+    testImplementation platform("org.spockframework:spock-bom:2.4-M1-groovy-4.0")
     testImplementation "org.spockframework:spock-core"
+    testImplementation "org.spockframework:spock-spring"
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'io.projectreactor:reactor-test'
 }

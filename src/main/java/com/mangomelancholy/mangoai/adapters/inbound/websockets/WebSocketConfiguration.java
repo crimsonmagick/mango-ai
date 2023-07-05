@@ -26,5 +26,4 @@ public class WebSocketConfiguration {
     return handlerMapping;
   }
 
-
 }
