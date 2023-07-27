@@ -25,7 +25,7 @@ public class ModelInfoService {
 
 
   public enum ModelType {
-    GPT_3_5("gpt-3.5-turbo"), GPT_4("gpt-4"), DAVINCI("davinci");
+    GPT_3_5("gpt-3.5-turbo"), GPT_4("gpt-4-0314"), DAVINCI("davinci");
 
     private final String modelString;
 
