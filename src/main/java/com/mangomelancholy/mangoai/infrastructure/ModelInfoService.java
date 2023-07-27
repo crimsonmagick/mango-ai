@@ -71,9 +71,9 @@ public class ModelInfoService {
 
   public int getMaxInputTokens(final ModelType model) {
     if ((model == DAVINCI) || (model == GPT_3_5)) {
-      return LOW_MAX_TOKENS;
+      return LOW_MAX_INPUT_TOKENS;
     } else if (model == GPT_4) {
-      return HIGH_MAX_TOKENS;
+      return HIGH_MAX_INPUT_TOKENS;
     }
     throw new RuntimeException("Unrecognized model type.");
   }
