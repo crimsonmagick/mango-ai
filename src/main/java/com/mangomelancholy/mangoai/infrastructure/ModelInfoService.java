@@ -87,4 +87,13 @@ public class ModelInfoService {
     throw new RuntimeException("Unrecognized model type.");
   }
 
+  public int getMessagePaddingTokens(final ModelType model) {
+    if (model == DAVINCI) {
+      return 0;
+    } else if ((model == GPT_4) || (model == GPT_3_5)) {
+      return 6;
+    }
+    throw new RuntimeException("Unrecognized model type.");
+  }
+
 }

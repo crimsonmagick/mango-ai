@@ -33,12 +33,13 @@ public class WindowedMemoryService implements MemoryService {
   public ConversationEntity rememberConversation(final ConversationEntity conversation, String model) {
     final ModelType modelType = ModelType.fromString(model);
     final long MAX_INPUT_TOKENS = modelInfoService.getMaxInputTokens(modelType);
+    final int messagePaddingTokens = modelInfoService.getMessagePaddingTokens(modelType);
     final Encoding encoding = registry.getEncoding(modelInfoService.getEncoding(modelType));
     final List<Tuple2<Long, ExpressionValue>> tokenPairs = conversation.getExpressions().stream()
         .map(value -> {
           final String serialized = serializationDelegator.serializeAsString(value, model);
           final long tokenCount = encoding.encode(serialized)
-              .size();
+              .size() + messagePaddingTokens;
           return Tuples.of(tokenCount, value);
         })
         .toList();
