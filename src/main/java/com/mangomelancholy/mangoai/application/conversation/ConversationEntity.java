@@ -10,11 +10,11 @@ public class ConversationEntity {
   private final String conversationId;
   private final List<ExpressionValue> expressionValues;
   private final String summary;
-  public ConversationEntity(final ExpressionValue systemSeed, final ExpressionValue userGreeting) {
-    assert systemSeed != null;
+  public ConversationEntity(final ExpressionValue systemPrompt, final ExpressionValue userGreeting) {
+    assert systemPrompt != null;
     assert userGreeting != null && userGreeting.content() != null && !"".equals(userGreeting.content().trim());
 
-    expressionValues = List.of(systemSeed, userGreeting);
+    expressionValues = List.of(systemPrompt, userGreeting);
     conversationId = null;
     final int length = userGreeting.content().length();
     final int lastIndex = length < 128 ? length : 127;
