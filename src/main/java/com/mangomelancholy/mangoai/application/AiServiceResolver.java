@@ -4,6 +4,8 @@ import com.mangomelancholy.mangoai.adapters.outbound.chat.GptChatSingletonServic
 import com.mangomelancholy.mangoai.adapters.outbound.chat.GptChatStreamedService;
 import com.mangomelancholy.mangoai.adapters.outbound.davinci.DavinciSingletonService;
 import com.mangomelancholy.mangoai.adapters.outbound.davinci.DavinciStreamedService;
+import com.mangomelancholy.mangoai.adapters.outbound.llama.LlamaSingletonService;
+import com.mangomelancholy.mangoai.adapters.outbound.llama.LlamaStreamedService;
 import com.mangomelancholy.mangoai.application.conversation.ports.secondary.AiSingletonService;
 import com.mangomelancholy.mangoai.application.conversation.ports.secondary.AiStreamedService;
 import com.mangomelancholy.mangoai.infrastructure.ModelInfoService.ModelType;
@@ -18,6 +20,8 @@ public class AiServiceResolver {
   private final DavinciStreamedService davinciStreamedService;
   private final GptChatSingletonService gptChatSingletonService;
   private final GptChatStreamedService gptChatStreamedService;
+  private final LlamaSingletonService llamaSingletonService;
+  private final LlamaStreamedService llamaStreamedService;
 
   public AiSingletonService resolveSingletonService(final ModelType modelType) {
     return switch (modelType) {

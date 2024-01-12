@@ -11,11 +11,16 @@ version = '0.0.1-SNAPSHOT'
 sourceCompatibility = '17'
 
 repositories {
+    maven {
+        name = 'OSSRH'
+        url = 'https://s01.oss.sonatype.org/content/repositories/snapshots/'
+    }
     mavenCentral()
 }
 
 ext {
     log4j2Version= '2.20.0'
+    jLlamaVersion = '0.0.1-t1-SNAPSHOT'
 }
 
 dependencies {
@@ -26,6 +31,17 @@ dependencies {
     implementation 'com.knuddels:jtokkit:0.6.1'
     implementation 'com.h2database:h2:2.1.214'
     implementation 'io.r2dbc:r2dbc-h2:1.0.0.RELEASE'
+
+    implementation "net.jllama:jni-bindings:${jLlamaVersion}"
+    // Linux
+    implementation "net.jllama:jni-implementation:${jLlamaVersion}:linux_x64"
+    implementation "net.jllama:llama-cpp:${jLlamaVersion}:linux_x64"
+    // Mac
+    implementation "net.jllama:jni-implementation:${jLlamaVersion}:os_x_arm64"
+    implementation "net.jllama:llama-cpp:${jLlamaVersion}:os_x_arm64"
+    // Windows
+    implementation "net.jllama:jni-implementation:${jLlamaVersion}:windows_x64"
+    implementation "net.jllama:llama-cpp:${jLlamaVersion}:windows_x64"
 
     implementation platform('org.apache.groovy:groovy-bom:4.0.5')
     implementation 'org.apache.groovy:groovy'

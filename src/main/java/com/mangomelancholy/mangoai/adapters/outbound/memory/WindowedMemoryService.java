@@ -9,6 +9,7 @@ import com.mangomelancholy.mangoai.application.conversation.ExpressionValue.Acto
 import com.mangomelancholy.mangoai.application.conversation.ports.secondary.MemoryService;
 import com.mangomelancholy.mangoai.infrastructure.ModelInfoService;
 import com.mangomelancholy.mangoai.infrastructure.ModelInfoService.ModelType;
+import com.mangomelancholy.mangoai.infrastructure.Tokenizer;
 import java.util.ArrayList;
 import java.util.List;
 import org.springframework.stereotype.Service;
@@ -22,24 +23,24 @@ public class WindowedMemoryService implements MemoryService {
   private final EncodingRegistry registry;
   private final SerializationDelegator serializationDelegator;
 
-  WindowedMemoryService(final ModelInfoService modelInfoService, final SerializationDelegator serializationDelegator) {
+  WindowedMemoryService(final ModelInfoService modelInfoService,
+      final SerializationDelegator serializationDelegator) {
     this.modelInfoService = modelInfoService;
     this.serializationDelegator = serializationDelegator;
     this.registry = Encodings.newDefaultEncodingRegistry();
   }
 
-
   @Override
-  public ConversationEntity rememberConversation(final ConversationEntity conversation, String model) {
+  public ConversationEntity rememberConversation(final ConversationEntity conversation,
+      String model) {
     final ModelType modelType = ModelType.fromString(model);
     final long MAX_INPUT_TOKENS = modelInfoService.getMaxInputTokens(modelType);
     final int messagePaddingTokens = modelInfoService.getMessagePaddingTokens(modelType);
-    final Encoding encoding = registry.getEncoding(modelInfoService.getEncoding(modelType));
+    final Tokenizer tokenizer = modelInfoService.getTokenizer(modelType);
     final List<Tuple2<Long, ExpressionValue>> tokenPairs = conversation.getExpressions().stream()
         .map(value -> {
           final String serialized = serializationDelegator.serializeAsString(value, model);
-          final long tokenCount = encoding.encode(serialized)
-              .size() + messagePaddingTokens;
+          final long tokenCount = tokenizer.countTokens(serialized) + messagePaddingTokens;
           return Tuples.of(tokenCount, value);
         })
         .toList();
@@ -59,6 +60,7 @@ public class WindowedMemoryService implements MemoryService {
     } else {
       remembered = new ArrayList<>(conversation.getExpressions());
     }
-    return new ConversationEntity(conversation.getConversationId(), remembered, conversation.getSummary());
+    return new ConversationEntity(conversation.getConversationId(), remembered,
+        conversation.getSummary());
   }
 }
