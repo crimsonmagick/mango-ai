@@ -15,7 +15,8 @@ class ChatCompletionExpressionSerializerTest extends Specification {
 
     def "serializeExpression - serialized expressions should be properly prefixed"() {
         when:
-        def serializedText = underTest.mapExpression(new ExpressionValue(content, actor))
+        final expression = new ExpressionValue(content, actor, "1")
+        final serializedText = underTest.serializeExpression(expression)
 
         then:
         serializedText == expected
@@ -26,6 +27,8 @@ class ChatCompletionExpressionSerializerTest extends Specification {
         "You are a chatbot"                                                | SYSTEM         | "System: You are a chatbot\n"
         "Hello, could you teach me the alphabet?"                          | USER           | "You: Hello, could you teach me the alphabet?\n"
         "HAL is a chatbot assistant that strives to eject you into space." | INITIAL_PROMPT | "HAL is a chatbot assistant that strives to eject you into space.\n"
+        and:
+        conversationId = 1
 
     }
 }
