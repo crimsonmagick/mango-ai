@@ -16,7 +16,7 @@ class ChatCompletionExpressionSerializerTest extends Specification {
     def "serializeExpression - serialized expressions should be properly prefixed"() {
         when:
         final expression = new ExpressionValue(content, actor, "1")
-        final serializedText = underTest.serializeExpression(expression)
+        final serializedText = underTest.serialize(expression)
 
         then:
         serializedText == expected

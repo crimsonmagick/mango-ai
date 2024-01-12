@@ -1,8 +1,5 @@
 package com.mangomelancholy.mangoai.adapters.outbound.memory;
 
-import com.knuddels.jtokkit.Encodings;
-import com.knuddels.jtokkit.api.Encoding;
-import com.knuddels.jtokkit.api.EncodingRegistry;
 import com.mangomelancholy.mangoai.application.conversation.ConversationEntity;
 import com.mangomelancholy.mangoai.application.conversation.ExpressionValue;
 import com.mangomelancholy.mangoai.application.conversation.ExpressionValue.ActorType;
@@ -20,14 +17,12 @@ import reactor.util.function.Tuples;
 public class WindowedMemoryService implements MemoryService {
 
   private final ModelInfoService modelInfoService;
-  private final EncodingRegistry registry;
   private final SerializationDelegator serializationDelegator;
 
   WindowedMemoryService(final ModelInfoService modelInfoService,
       final SerializationDelegator serializationDelegator) {
     this.modelInfoService = modelInfoService;
     this.serializationDelegator = serializationDelegator;
-    this.registry = Encodings.newDefaultEncodingRegistry();
   }
 
   @Override

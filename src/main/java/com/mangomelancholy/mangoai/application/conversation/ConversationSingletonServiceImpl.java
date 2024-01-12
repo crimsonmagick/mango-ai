@@ -18,7 +18,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
-
 @RequiredArgsConstructor
 @Service
 public class ConversationSingletonServiceImpl implements ConversationSingletonService {

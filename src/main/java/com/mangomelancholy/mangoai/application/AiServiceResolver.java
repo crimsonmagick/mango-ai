@@ -26,6 +26,7 @@ public class AiServiceResolver {
   public AiSingletonService resolveSingletonService(final ModelType modelType) {
     return switch (modelType) {
       case GPT_4, GPT_3_5 -> gptChatSingletonService;
+      case LLAMA_2 -> llamaSingletonService;
       default -> davinciSingletonService;
     };
   }
@@ -33,6 +34,7 @@ public class AiServiceResolver {
   public AiStreamedService resolveStreamedService(final ModelType modelType) {
     return switch (modelType) {
       case GPT_4, GPT_3_5 -> gptChatStreamedService;
+      case LLAMA_2 -> llamaStreamedService;
       default -> davinciStreamedService;
     };
   }

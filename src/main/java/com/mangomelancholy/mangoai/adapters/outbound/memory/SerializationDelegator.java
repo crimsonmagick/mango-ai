@@ -19,6 +19,8 @@ public class SerializationDelegator {
       return chatExpressionMapper.mapExpression(expressionValue).content(); // ??? should we just map expressionValue.content() directly ???
     } else if (model.toLowerCase().startsWith("davinci")) {
       return completionSerializer.serializeExpression(expressionValue);
+    } else if (model.toLowerCase().startsWith("llama")) {
+      return expressionValue.content(); // FIXME this is adding system symbols
     }
     throw new InvalidParameterException(String.format("Unsupported model=%s provided", model));
   }

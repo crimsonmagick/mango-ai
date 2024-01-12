@@ -67,7 +67,7 @@ public class ModelInfoService {
     if (model == DAVINCI) {
       return davinciSeed;
     }
-    if (model == GPT_3_5 || model == GPT_4) {
+    if (model == GPT_3_5 || model == GPT_4 || model == LLAMA_2) {
       return chatGptSeed;
     }
     throw new RuntimeException("Unrecognized model type.");
